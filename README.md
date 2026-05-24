@@ -1,25 +1,26 @@
-# Installation
-
-This package depends on ZString. [You can find out more about ZString here.](https://github.com/Cysharp/ZString)
-
-Install both packages through **Window > Package Manager** using **Add package from git URL...**.
-
-1. Add ZString first:
-
-`https://github.com/Cysharp/ZString.git?path=src/ZString.Unity/Assets/Scripts/ZString#2.6.0`
-
-2. Then add Localization:
-
-`https://github.com/Timbo-Jimbo/Localization.git?path=Packages/com.timbojimbo.localization`
-
-# General
+# Localization Package
 
 - **`LocalizedString` / `LocalizedSprite`** hold the per-locale data.
 - **`LocalizableString` / `LocalizableSprite`** are flexible references that can point to localized data or use a direct value.
 - **Applicators** read the active locale and apply the correct text or sprite to a target component.
 - **Locale-aware formatting** is supported, so regular C# formatting (and `ZString`) uses the active locale for things like numbers and dates.
 
-# Applicators
+# Installation
+
+This package depends on [ZString.](https://github.com/Cysharp/ZString)
+Install both packages through **Window > Package Manager** using **Add package from git URL...**.
+
+1. Add ZString first: 
+```
+https://github.com/Cysharp/ZString.git?path=src/ZString.Unity/Assets/Scripts/ZString
+```
+2. Then add Localization: 
+```
+https://github.com/Timbo-Jimbo/Localization.git?path=Packages/com.timbojimbo.localization
+```
+
+# Usage
+## Applicator Components
 
 Applicators are components you add to a `GameObject` to automatically push a localized value onto another component.
 
@@ -37,9 +38,9 @@ Right now the built-in applicators are text-focused:
 
 In practice, you usually add one of these components, assign its target field, and then set the `LocalizableString` it should resolve.
 
-# API
+## Scripting API
 
-Most runtime access goes through `LocalizationSettings`, `LocalizedString`, and the `Localizable*` wrappers.
+Most runtime access goes through `LocalizationSettings`, `Localized*`, and the `Localizable*` wrappers.
 
 ### Iterate Locales
 
@@ -95,7 +96,7 @@ string scoreText = myLocalizableString.Resolve(locale, score);
 Create an AI translator asset through **Localization/Settings and Config/AI Translator (Editor)** and configure it via the inspector.
 
 > [!IMPORTANT]
-> The API key is entered in the inspector and stored in **EditorPrefs**, not inside the asset itself.
+> The API key is entered in the inspector and stored in **EditorPrefs**, not inside the asset itself. You can safely commit your changes. Make sure to back up your API Keys because they won't be stored here! You'll need to enter it again on each machine you use.
  
 ### Context Blocks
 
