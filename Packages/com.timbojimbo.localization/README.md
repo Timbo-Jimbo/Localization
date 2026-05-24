@@ -1,6 +1,1 @@
-# installation
-
-- ensure you have ZString installed
-- add via package manager {git url}
-
-# usage
+A simple localization package for Unity with a built in AI Transation tool.

@@ -14,7 +14,7 @@
     "url": "https://timbojimbo.com",
     "email": "hello@timbojimbo.com"
   },
-  "changelogUrl": "https://example.com/changelog.html",
-  "documentationUrl": "https://example.com/",
-  "licensesUrl": "https://example.com/licensing.html"
+  "changelogUrl": "https://github.com/Timbo-Jimbo/Localization/blob/main/Packages/com.timbojimbo.localization/CHANGELOG.md",
+  "documentationUrl": "https://github.com/Timbo-Jimbo/Localization#readme",
+  "licensesUrl": "https://github.com/Timbo-Jimbo/Localization/blob/main/LICENSE"
 }
