@@ -445,7 +445,7 @@ namespace TimboJimboEditor.Localization
             // Resolve the registered custom editor for this asset type (e.g. LocalizedStringEditor).
             // The popup delegates value rendering to its OnLocaleValueGUI hook so custom
             // editors automatically pick up the same control they use in the inspector.
-            UnityEditor.Editor created = UnityEditor.Editor.CreateEditor(_asset);
+            Editor created = UnityEditor.Editor.CreateEditor(_asset);
             if (created is LocalizedValueEditor typed)
             {
                 _assetEditor = typed;

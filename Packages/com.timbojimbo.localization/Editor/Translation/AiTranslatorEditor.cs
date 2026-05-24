@@ -4,7 +4,7 @@ using UnityEngine;
 namespace TimboJimboEditor.Localization.Translations
 {
     [CustomEditor(typeof(AiTranslator))]
-    public sealed class AiTranslatorEditor : UnityEditor.Editor
+    public sealed class AiTranslatorEditor : Editor
     {
         private string _apiKeyInput;
         private bool _showDebugHistory = true;

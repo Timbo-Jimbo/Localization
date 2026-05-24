@@ -60,8 +60,14 @@ namespace TimboJimboEditor.Localization
 
             private void ShowLocaleMenu()
             {
-                EnsureSettingsLoaded();
+                LocalizationBootstrapper.EnsureSettingsLoaded(promptToCreate: true);
                 RefreshLabel();
+
+                if (LocalizationSettings.IsInitialized == false)
+                {
+                    return;
+                }
+
                 PopupWindow.Show(worldBound, new LocalePreviewPopupContent());
             }
 
@@ -73,24 +79,12 @@ namespace TimboJimboEditor.Localization
 
         private static LocalizationSettings FindSettingsAsset()
         {
-            string[] guids = AssetDatabase.FindAssets($"t:{nameof(LocalizationSettings)}");
-            if (guids.Length == 0)
-            {
-                return null;
-            }
-
-            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-            return AssetDatabase.LoadAssetAtPath<LocalizationSettings>(path);
+            return LocalizationBootstrapper.FindSettingsAsset();
         }
 
         private static LocalizationSettings EnsureSettingsLoaded()
         {
-            if (LocalizationSettings.IsInitialized)
-            {
-                return LocalizationSettings.ActiveAsset;
-            }
-
-            return FindSettingsAsset();
+            return LocalizationBootstrapper.EnsureSettingsLoaded();
         }
 
         private static Texture2D GetIcon()
@@ -327,7 +321,7 @@ namespace TimboJimboEditor.Localization
 
                 DrawSeparator(separatorRect);
 
-                if (GUI.Button(settingsRect, "Settings..."))
+                if (LocalizationSettings.IsInitialized && GUI.Button(settingsRect, "Settings..."))
                 {
                     Selection.activeObject = EnsureSettingsLoaded();
                     editorWindow.Close();
@@ -505,6 +499,9 @@ namespace TimboJimboEditor.Localization
 
         private static string GetLocaleToolbarLabel()
         {
+            if(!LocalizationSettings.IsInitialized) 
+                return "No LocalizationSettings";
+
             var locale = LocalizationSettings.ActiveLocale;
             
             var (overrideShownActiveLocale, activeLocale) = LocalePreviewPopupContent.ActiveLocaleDisplay;

@@ -12,7 +12,7 @@ namespace TimboJimboEditor.Localization
     /// <summary>
     /// Base inspector for <see cref="LocalizedValue"/> types.
     /// </summary>
-    public abstract class LocalizedValueEditor : UnityEditor.Editor
+    public abstract class LocalizedValueEditor : Editor
     {
         protected const string ValuesPropertyName = "Values";
         protected const string DescriptionPropertyName = "Description";

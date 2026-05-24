@@ -9,7 +9,7 @@ using TimboJimbo.Localization;
 namespace TimboJimboEditor.Localization
 {
     [CustomEditor(typeof(LocalizationSettings))]
-    public sealed class LocalizationSettingsEditor : UnityEditor.Editor
+    public sealed class LocalizationSettingsEditor : Editor
     {
         private const string LocalesPropertyName = "_locales";
         private const string DefaultLocalePropertyName = "_defaultLocale";
@@ -18,22 +18,13 @@ namespace TimboJimboEditor.Localization
         private SerializedProperty _localesProperty;
         private SerializedProperty _defaultLocaleProperty;
 
-        private readonly Dictionary<UnityEngine.Object, UnityEditor.Editor> _localeEditors = new();
+        private readonly Dictionary<UnityEngine.Object, Editor> _localeEditors = new();
 
 
         [InitializeOnLoadMethod]
         private static void InitializeInstanceInEditMode()
         {
-            if (LocalizationSettings.IsInitialized) return;
-
-            string[] guids = AssetDatabase.FindAssets($"t:{nameof(LocalizationSettings)}");
-            if (guids.Length == 0) return;
-
-            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-
-            //we need to Load it to have in OnEnable'd. Usually this happens at runtime
-            // as it is included in the list of preload assets..!
-            AssetDatabase.LoadAssetAtPath<LocalizationSettings>(path);
+            LocalizationBootstrapper.EnsureSettingsLoaded();
         }
 
         private void OnEnable()
@@ -131,7 +122,7 @@ namespace TimboJimboEditor.Localization
 
             EditorGUILayout.Space(4f);
 
-            UnityEditor.Editor subEditor = GetOrCreateSubEditor(locale);
+            Editor subEditor = GetOrCreateSubEditor(locale);
             if (subEditor != null)
             {
                 using (new EditorGUI.IndentLevelScope())
@@ -301,7 +292,7 @@ namespace TimboJimboEditor.Localization
                 LocalizationSettings.ClearActiveLocale();
         }
 
-        private static LocalizationLocale CreateLocale(LocalizationSettings settings, System.Globalization.CultureInfo culture)
+        private static LocalizationLocale CreateLocale(LocalizationSettings settings, CultureInfo culture)
         {
             var locale = CreateInstance<LocalizationLocale>();
 
@@ -346,7 +337,7 @@ namespace TimboJimboEditor.Localization
             return locale;
         }
 
-        private UnityEditor.Editor GetOrCreateSubEditor(LocalizationLocale locale)
+        private Editor GetOrCreateSubEditor(LocalizationLocale locale)
         {
             if (locale == null) return null;
             if (_localeEditors.TryGetValue(locale, out var editor) && editor != null)

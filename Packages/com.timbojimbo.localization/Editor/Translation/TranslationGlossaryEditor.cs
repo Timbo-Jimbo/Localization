@@ -6,7 +6,7 @@ using UnityEngine;
 namespace TimboJimboEditor.Localization.Translations
 {
     [CustomEditor(typeof(TranslationGlossary))]
-    public sealed class TranslationGlossaryEditor : UnityEditor.Editor
+    public sealed class TranslationGlossaryEditor : Editor
     {
         private const string TermsPropertyName = "_terms";
         private const string FoldoutStateKeyPrefix = "TranslationGlossaryEditor.Foldout.";
