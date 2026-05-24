@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5182171563d8a704b982ffd523a14724, type: 3}
+  m_Name: HowToEarnMoreCash
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedString
+  DebugContextInfo:
+    Context: {fileID: 11400000}
+    SourcePath: Assets/Localization/HowToEarnMoreCash.asset
+    PropertyPath: LocalizedString
+  Description: 
+  Values:
+  - Locale: {fileID: -2137289141961439803, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "Welcome to SSR! Ready to earn? \U0001F60E\n\nYou can complete races to
+      earn Credits and complete challenges to earn Cash. \n\nYou'll need Race Passes
+      to play though - you can get those from the store!"
+  - Locale: {fileID: 4724877799100478756, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\u0645\u0631\u062D\u0628\u064B\u0627 \u0628\u0643 \u0641\u064A SSR! \u0647\u0644
+      \u0623\u0646\u062A \u0645\u0633\u062A\u0639\u062F \u0644\u0644\u0643\u0633\u0628\u061F
+      \U0001F60E\n\n\u064A\u0645\u0643\u0646\u0643 \u0625\u0643\u0645\u0627\u0644
+      \u0627\u0644\u0633\u0628\u0627\u0642\u0627\u062A \u0644\u0643\u0633\u0628 \u0627\u0644\u0631\u0635\u064A\u062F
+      \u0648\u0625\u0643\u0645\u0627\u0644 \u0627\u0644\u062A\u062D\u062F\u064A\u0627\u062A
+      \u0644\u0643\u0633\u0628 \u0627\u0644\u0646\u0642\u062F. \n\n\u0644\u0643\u0646
+      \u0633\u062A\u062D\u062A\u0627\u062C \u0625\u0644\u0649 \u062A\u0630\u0627\u0643\u0631
+      \u0627\u0644\u0633\u0628\u0627\u0642 \u0644\u0644\u0639\u0628 - \u064A\u0645\u0643\u0646\u0643
+      \u0627\u0644\u062D\u0635\u0648\u0644 \u0639\u0644\u064A\u0647\u0627 \u0645\u0646
+      \u0627\u0644\u0645\u062A\u062C\u0631!"
+  - Locale: {fileID: -2461523984715262568, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\u6B22\u8FCE\u6765\u5230 SSR\uFF01\u51C6\u5907\u597D\u8D5A\u53D6\u5956\u52B1\u4E86\u5417\uFF1F\U0001F60E\n\n\u4F60\u53EF\u4EE5\u5B8C\u6210\u6BD4\u8D5B\u6765\u8D5A\u53D6\u70B9\u5238\uFF0C\u5B8C\u6210\u6311\u6218\u6765\u8D5A\u53D6\u73B0\u91D1\u3002\n\n\u4E0D\u8FC7\uFF0C\u4F60\u9700\u8981\u7ADE\u901F\u5238\u624D\u80FD\u6E38\u73A9\u2014\u2014\u4F60\u53EF\u4EE5\u5728\u5546\u5E97\u83B7\u5F97\u5B83\u4EEC\uFF01"
+  - Locale: {fileID: -8170776940505498243, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "Bienvenue dans SSR ! Pr\xEAt \xE0 gagner ? \U0001F60E\n\nVous pouvez
+      terminer des courses pour gagner des Cr\xE9dits et relever des d\xE9fis pour
+      gagner de l'Argent. \n\nVous aurez toutefois besoin de Tickets de course pour
+      jouer - vous pouvez en obtenir dans la boutique !\n\ntest"
+  - Locale: {fileID: -4747512038184049170, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "Willkommen bei SSR! Bereit, etwas zu verdienen? \U0001F60E\n\nDu kannst
+      Rennen abschlie\xDFen, um Credits zu verdienen, und Herausforderungen abschlie\xDFen,
+      um Bargeld zu verdienen. \n\nZum Spielen brauchst du allerdings Renn-Tickets
+      - du kannst sie im Shop bekommen!"
+  - Locale: {fileID: 906744869671443907, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\u039A\u03B1\u03BB\u03CE\u03C2 \u03AE\u03C1\u03B8\u03B5\u03C2 \u03C3\u03C4\u03BF
+      SSR! \u0388\u03C4\u03BF\u03B9\u03BC\u03BF\u03C2 \u03BD\u03B1 \u03BA\u03B5\u03C1\u03B4\u03AF\u03C3\u03B5\u03B9\u03C2;
+      \U0001F60E\n\n\u039C\u03C0\u03BF\u03C1\u03B5\u03AF\u03C2 \u03BD\u03B1 \u03BF\u03BB\u03BF\u03BA\u03BB\u03B7\u03C1\u03CE\u03BD\u03B5\u03B9\u03C2
+      \u03B1\u03B3\u03CE\u03BD\u03B5\u03C2 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03BA\u03B5\u03C1\u03B4\u03AF\u03B6\u03B5\u03B9\u03C2
+      \u03A0\u03B9\u03C3\u03C4\u03CE\u03C3\u03B5\u03B9\u03C2 \u03BA\u03B1\u03B9 \u03BD\u03B1
+      \u03BF\u03BB\u03BF\u03BA\u03BB\u03B7\u03C1\u03CE\u03BD\u03B5\u03B9\u03C2 \u03C0\u03C1\u03BF\u03BA\u03BB\u03AE\u03C3\u03B5\u03B9\u03C2
+      \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03BA\u03B5\u03C1\u03B4\u03AF\u03B6\u03B5\u03B9\u03C2
+      \u039C\u03B5\u03C4\u03C1\u03B7\u03C4\u03AC. \n\n\u0398\u03B1 \u03C7\u03C1\u03B5\u03B9\u03B1\u03C3\u03C4\u03B5\u03AF\u03C2
+      \u03CC\u03BC\u03C9\u03C2 \u0395\u03B9\u03C3\u03B9\u03C4\u03AE\u03C1\u03B9\u03B1
+      \u0391\u03B3\u03CE\u03BD\u03B1 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03C0\u03B1\u03AF\u03BE\u03B5\u03B9\u03C2
+      - \u03BC\u03C0\u03BF\u03C1\u03B5\u03AF\u03C2 \u03BD\u03B1 \u03C4\u03B1 \u03B1\u03C0\u03BF\u03BA\u03C4\u03AE\u03C3\u03B5\u03B9\u03C2
+      \u03B1\u03C0\u03CC \u03C4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1!"
+  - Locale: {fileID: 1245479003261064919, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "SSR \u092E\u0947\u0902 \u0906\u092A\u0915\u093E \u0938\u094D\u0935\u093E\u0917\u0924
+      \u0939\u0948! \u0915\u092E\u093E\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F
+      \u0924\u0948\u092F\u093E\u0930 \u0939\u0948\u0902? \U0001F60E\n\n\u0906\u092A
+      \u0915\u094D\u0930\u0947\u0921\u093F\u091F\u094D\u0938 \u0915\u092E\u093E\u0928\u0947
+      \u0915\u0947 \u0932\u093F\u090F \u0930\u0947\u0938 \u092A\u0942\u0930\u0940
+      \u0915\u0930 \u0938\u0915\u0924\u0947 \u0939\u0948\u0902 \u0914\u0930 \u0928\u0915\u0926
+      \u0915\u092E\u093E\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F \u091A\u0941\u0928\u094C\u0924\u093F\u092F\u093E\u0901
+      \u092A\u0942\u0930\u0940 \u0915\u0930 \u0938\u0915\u0924\u0947 \u0939\u0948\u0902\u0964
+      \n\n\u0932\u0947\u0915\u093F\u0928 \u0916\u0947\u0932\u0928\u0947 \u0915\u0947
+      \u0932\u093F\u090F \u0906\u092A\u0915\u094B \u0930\u0947\u0938 \u091F\u093F\u0915\u091F
+      \u091A\u093E\u0939\u093F\u090F \u0939\u094B\u0902\u0917\u0947 - \u0906\u092A
+      \u0909\u0928\u094D\u0939\u0947\u0902 \u0938\u094D\u091F\u094B\u0930 \u0938\u0947
+      \u092A\u094D\u0930\u093E\u092A\u094D\u0924 \u0915\u0930 \u0938\u0915\u0924\u0947
+      \u0939\u0948\u0902!"
+  - Locale: {fileID: -782337820601032030, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "Selamat datang di SSR! Siap untuk mendapatkan hadiah? \U0001F60E\n\nKamu
+      bisa menyelesaikan balapan untuk mendapatkan Kredit dan menyelesaikan tantangan
+      untuk mendapatkan Tunai. \n\nNamun, kamu memerlukan Tiket Balapan untuk bermain
+      - kamu bisa mendapatkannya dari toko!"
+  - Locale: {fileID: 8454123316322210107, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "Benvenuto in SSR! Pronto a guadagnare? \U0001F60E\n\nPuoi completare
+      le gare per guadagnare Crediti e completare le sfide per guadagnare Contanti.
+      \n\nPer giocare, per\xF2, ti serviranno i Biglietti gara: puoi ottenerli nel
+      negozio!"
+  - Locale: {fileID: -7634594623133805022, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "SSR\u3078\u3088\u3046\u3053\u305D\uFF01 \u7A3C\u3050\u6E96\u5099\u306F\u3044\u3044\uFF1F
+      \U0001F60E\n\n\u30EC\u30FC\u30B9\u3092\u30AF\u30EA\u30A2\u3059\u308B\u3068\u30AF\u30EC\u30B8\u30C3\u30C8\u3092\u7372\u5F97\u3067\u304D\u3001\u30C1\u30E3\u30EC\u30F3\u30B8\u3092\u30AF\u30EA\u30A2\u3059\u308B\u3068\u73FE\u91D1\u3092\u7372\u5F97\u3067\u304D\u307E\u3059\u3002\n\n\u305F\u3060\u3057\u3001\u30D7\u30EC\u30A4\u3059\u308B\u306B\u306F\u30EC\u30FC\u30B9\u30C1\u30B1\u30C3\u30C8\u304C\u5FC5\u8981\u3067\u3059\u3002\u30B7\u30E7\u30C3\u30D7\u3067\u5165\u624B\u3067\u304D\u307E\u3059\uFF01"
+  - Locale: {fileID: 2170051307899629299, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "SSR\uC5D0 \uC624\uC2E0 \uAC83\uC744 \uD658\uC601\uD569\uB2C8\uB2E4! \uBC8C
+      \uC900\uBE44 \uB418\uC168\uB098\uC694? \U0001F60E\n\n\uB808\uC774\uC2A4\uB97C
+      \uC644\uB8CC\uD558\uBA74 \uD06C\uB808\uB527\uC744 \uD68D\uB4DD\uD560 \uC218
+      \uC788\uACE0, \uCC4C\uB9B0\uC9C0\uB97C \uC644\uB8CC\uD558\uBA74 \uD604\uAE08\uC744
+      \uD68D\uB4DD\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \n\n\uD558\uC9C0\uB9CC
+      \uD50C\uB808\uC774\uD558\uB824\uBA74 \uB808\uC774\uC2A4 \uD2F0\uCF13\uC774
+      \uD544\uC694\uD569\uB2C8\uB2E4 - \uC0C1\uC810\uC5D0\uC11C \uAD6C\uD560 \uC218
+      \uC788\uC5B4\uC694!"
+  - Locale: {fileID: -5993577645703193449, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "Boas-vindas ao SSR! Pronto para ganhar? \U0001F60E\n\nVoc\xEA pode completar
+      corridas para ganhar Cr\xE9ditos e completar desafios para ganhar Dinheiro.
+      \n\nMas voc\xEA vai precisar de Bilhetes de Corrida para jogar - voc\xEA pode
+      consegui-los na loja!"
+  - Locale: {fileID: -4578099899835064837, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C
+      \u0432 SSR! \u0413\u043E\u0442\u043E\u0432 \u0437\u0430\u0440\u0430\u0431\u0430\u0442\u044B\u0432\u0430\u0442\u044C?
+      \U0001F60E\n\n\u0422\u044B \u043C\u043E\u0436\u0435\u0448\u044C \u043F\u0440\u043E\u0445\u043E\u0434\u0438\u0442\u044C
+      \u0433\u043E\u043D\u043A\u0438, \u0447\u0442\u043E\u0431\u044B \u043F\u043E\u043B\u0443\u0447\u0430\u0442\u044C
+      \u041A\u0440\u0435\u0434\u0438\u0442\u044B, \u0438 \u0432\u044B\u043F\u043E\u043B\u043D\u044F\u0442\u044C
+      \u0438\u0441\u043F\u044B\u0442\u0430\u043D\u0438\u044F, \u0447\u0442\u043E\u0431\u044B
+      \u043F\u043E\u043B\u0443\u0447\u0430\u0442\u044C \u041D\u0430\u043B\u0438\u0447\u043D\u044B\u0435.
+      \n\n\u041D\u043E \u0434\u043B\u044F \u0438\u0433\u0440\u044B \u0442\u0435\u0431\u0435
+      \u043F\u043E\u043D\u0430\u0434\u043E\u0431\u044F\u0442\u0441\u044F \u0411\u0438\u043B\u0435\u0442\u044B
+      \u0433\u043E\u043D\u043A\u0438 \u2014 \u0438\u0445 \u043C\u043E\u0436\u043D\u043E
+      \u043F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u0432 \u043C\u0430\u0433\u0430\u0437\u0438\u043D\u0435!"
+  - Locale: {fileID: -2153803791298449011, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "SSR\u2019ye ho\u015F geldin! Kazanmaya haz\u0131r m\u0131s\u0131n? \U0001F60E\n\nYar\u0131\u015Flar\u0131
+      tamamlayarak Jeton, m\xFCcadeleleri tamamlayarak da Nakit kazanabilirsin.\n\nAma
+      oynamak i\xE7in Yar\u0131\u015F Biletleri gerekecek; onlar\u0131 ma\u011Fazadan
+      alabilirsin!"
+  - Locale: {fileID: -2647112314400262711, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "Croeso i SSR! Yn barod i ennill? \U0001F60E\n\nGallwch gwblhau rasys
+      i ennill Credydau a chwblhau heriau i ennill Cash. \n\nBydd angen Race Passes
+      arnoch i chwarae serch hynny - gallwch gael y rheini o'r siop!"

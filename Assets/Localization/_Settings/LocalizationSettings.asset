@@ -1,0 +1,256 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8170776940505498243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "fran\xE7ais"
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: fr
+  _countryCode: 
+  _nativeName: "fran\xE7ais"
+--- !u!114 &-7634594623133805022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "\u65E5\u672C\u8A9E"
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: ja
+  _countryCode: 
+  _nativeName: "\u65E5\u672C\u8A9E"
+--- !u!114 &-5993577645703193449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "portugu\xEAs (Brasil)"
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: pt
+  _countryCode: BR
+  _nativeName: "portugu\xEAs (Brasil)"
+--- !u!114 &-4747512038184049170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: Deutsch
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: de
+  _countryCode: 
+  _nativeName: Deutsch
+--- !u!114 &-4578099899835064837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "\u0440\u0443\u0441\u0441\u043A\u0438\u0439"
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: ru
+  _countryCode: 
+  _nativeName: "\u0440\u0443\u0441\u0441\u043A\u0438\u0439"
+--- !u!114 &-2647112314400262711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: Cymraeg
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: cy
+  _countryCode: 
+  _nativeName: Cymraeg
+--- !u!114 &-2461523984715262568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "\u4E2D\u6587"
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: zh
+  _countryCode: 
+  _nativeName: "\u4E2D\u6587"
+--- !u!114 &-2153803791298449011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "T\xFCrk\xE7e"
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: tr
+  _countryCode: 
+  _nativeName: "T\xFCrk\xE7e"
+--- !u!114 &-2137289141961439803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: English
+  m_EditorClassIdentifier: Assembly-CSharp::Locale
+  _languageCode: en
+  _countryCode: 
+  _nativeName: English
+--- !u!114 &-782337820601032030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: Indonesia
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: id
+  _countryCode: 
+  _nativeName: Indonesia
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6572cd407ef528246afb4062e855ba65, type: 3}
+  m_Name: LocalizationSettings
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationSettings
+  _locales:
+  - {fileID: -2137289141961439803}
+  - {fileID: -2461523984715262568}
+  - {fileID: 4724877799100478756}
+  - {fileID: -4747512038184049170}
+  - {fileID: -2153803791298449011}
+  - {fileID: -5993577645703193449}
+  - {fileID: -8170776940505498243}
+  - {fileID: 906744869671443907}
+  - {fileID: 1245479003261064919}
+  - {fileID: -7634594623133805022}
+  - {fileID: 2170051307899629299}
+  - {fileID: 8454123316322210107}
+  - {fileID: -782337820601032030}
+  - {fileID: -4578099899835064837}
+  - {fileID: -2647112314400262711}
+  _defaultLocale: {fileID: -2137289141961439803}
+--- !u!114 &906744869671443907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC"
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: el
+  _countryCode: 
+  _nativeName: "\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC"
+--- !u!114 &1245479003261064919
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "\u0939\u093F\u0928\u094D\u0926\u0940"
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: hi
+  _countryCode: 
+  _nativeName: "\u0939\u093F\u0928\u094D\u0926\u0940"
+--- !u!114 &2170051307899629299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "\uD55C\uAD6D\uC5B4"
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: ko
+  _countryCode: 
+  _nativeName: "\uD55C\uAD6D\uC5B4"
+--- !u!114 &4724877799100478756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "\u0627\u0644\u0639\u0631\u0628\u064A\u0629"
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: ar
+  _countryCode: 
+  _nativeName: "\u0627\u0644\u0639\u0631\u0628\u064A\u0629"
+--- !u!114 &8454123316322210107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: italiano
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizationLocale
+  _languageCode: it
+  _countryCode: 
+  _nativeName: italiano

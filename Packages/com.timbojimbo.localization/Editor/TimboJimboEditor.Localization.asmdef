@@ -1,0 +1,19 @@
+{
+    "name": "TimboJimboEditor.Localization",
+    "rootNamespace": "",
+    "references": [
+        "TimboJimbo.Localization.Runtime",
+        "ZString"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

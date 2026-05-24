@@ -1,0 +1,24 @@
+{
+    "name": "TimboJimbo.Localization.Runtime",
+    "rootNamespace": "TimboJimbo.Localization",
+    "references": [
+        "Unity.TextMeshPro",
+        "LightSide.UniText",
+        "ZString"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "media.lightside.unitext",
+            "expression": "2",
+            "define": "TJ_LOCALIZATION_UNITEXT_SUPPORT"
+        }
+    ],
+    "noEngineReferences": false
+}

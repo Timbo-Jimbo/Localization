@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62acb3805a8830446b2f71c4455c9958, type: 3}
+  m_Name: GPT5.5
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::AiTranslator
+  _glossaries:
+  - {fileID: 11400000, guid: b37446ba09e3e1541b9b2b1baf94f991, type: 2}
+  _contextBlocks:
+  - _title: Freedom to rephrase
+    _body: "You are free to reword and rework the source text as much as you want.
+      \n\nThe only requirements is that overall meaning and intent is conveyed. A
+      strict one-to-one translation is NOT required. \n\nDeviating from the source
+      text is encouraged with an end goal of translations that feel extremely natural
+      in the speakers langauge. Take the source text as a 'suggestion' of what we
+      want to convey in the target language."
+  - _title: Vibes
+    _body: Maintain the energy and vibe of the source entry.
+  _systemInstructions: 
+  _model: gpt-5.5
+  _apiBaseUrl: https://api.openai.com/v1
+  _timeoutSeconds: 480
+  _temperature: 1

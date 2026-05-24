@@ -1,0 +1,167 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5182171563d8a704b982ffd523a14724, type: 3}
+  m_Name: TimeAgo
+  m_EditorClassIdentifier: TimboJimbo.Localization.Runtime::TimboJimbo.Localization.LocalizedTypes.LocalizedString
+  DebugContextInfo:
+    Context: {fileID: 11400000}
+    SourcePath: Assets/Localization/TimeAgo.asset
+    PropertyPath: LocalizedString
+  Description: 
+  Values:
+  - Locale: {fileID: -2137289141961439803, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: '{0:q|<-90d=A long time ago|<-30d=A month ago|<-14d=A few weeks ago|<-7d=A
+      week ago|<-2d=A few days ago|<-1d=Yesterday|<-2h=A few hours ago|<-1h=An hour
+      ago|<-30m=Half an hour ago|<-2m=A few minutes ago|<-1m=A minute ago|>=90d=In
+      a long time|>=30d=In a month|>=14d=In a few weeks|>=7d=In a week|>=2d=In a
+      few days|>=1d=Tomorrow|>=2h=In a few hours|>=1h=In an hour|>=30m=In half an
+      hour|>=2m=In a few minutes|>=1m=In a minute|Just now}'
+  - Locale: {fileID: 4724877799100478756, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=\u0645\u0646\u0630 \u0632\u0645\u0646 \u0637\u0648\u064A\u0644|<-30d=\u0645\u0646\u0630
+      \u0634\u0647\u0631|<-14d=\u0645\u0646\u0630 \u0623\u0633\u0627\u0628\u064A\u0639
+      \u0642\u0644\u064A\u0644\u0629|<-7d=\u0645\u0646\u0630 \u0623\u0633\u0628\u0648\u0639|<-2d=\u0645\u0646\u0630
+      \u0628\u0636\u0639\u0629 \u0623\u064A\u0627\u0645|<-1d=\u0623\u0645\u0633|<-2h=\u0645\u0646\u0630
+      \u0628\u0636\u0639 \u0633\u0627\u0639\u0627\u062A|<-1h=\u0645\u0646\u0630 \u0633\u0627\u0639\u0629|<-30m=\u0645\u0646\u0630
+      \u0646\u0635\u0641 \u0633\u0627\u0639\u0629|<-2m=\u0645\u0646\u0630 \u0628\u0636\u0639
+      \u062F\u0642\u0627\u0626\u0642|<-1m=\u0645\u0646\u0630 \u062F\u0642\u064A\u0642\u0629|>=90d=\u0628\u0639\u062F
+      \u0648\u0642\u062A \u0637\u0648\u064A\u0644|>=30d=\u0628\u0639\u062F \u0634\u0647\u0631|>=14d=\u0628\u0639\u062F
+      \u0623\u0633\u0627\u0628\u064A\u0639 \u0642\u0644\u064A\u0644\u0629|>=7d=\u0628\u0639\u062F
+      \u0623\u0633\u0628\u0648\u0639|>=2d=\u0628\u0639\u062F \u0628\u0636\u0639\u0629
+      \u0623\u064A\u0627\u0645|>=1d=\u063A\u062F\u0627\u064B|>=2h=\u0628\u0639\u062F
+      \u0628\u0636\u0639 \u0633\u0627\u0639\u0627\u062A|>=1h=\u0628\u0639\u062F \u0633\u0627\u0639\u0629|>=30m=\u0628\u0639\u062F
+      \u0646\u0635\u0641 \u0633\u0627\u0639\u0629|>=2m=\u0628\u0639\u062F \u0628\u0636\u0639
+      \u062F\u0642\u0627\u0626\u0642|>=1m=\u0628\u0639\u062F \u062F\u0642\u064A\u0642\u0629|\u0627\u0644\u0622\u0646}"
+  - Locale: {fileID: -2461523984715262568, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=\u5F88\u4E45\u4EE5\u524D|<-30d=\u4E00\u4E2A\u6708\u524D|<-14d=\u51E0\u5468\u524D|<-7d=\u4E00\u5468\u524D|<-2d=\u51E0\u5929\u524D|<-1d=\u6628\u5929|<-2h=\u51E0\u5C0F\u65F6\u524D|<-1h=\u4E00\u5C0F\u65F6\u524D|<-30m=\u534A\u5C0F\u65F6\u524D|<-2m=\u51E0\u5206\u949F\u524D|<-1m=\u4E00\u5206\u949F\u524D|>=90d=\u5F88\u4E45\u4EE5\u540E|>=30d=\u4E00\u4E2A\u6708\u540E|>=14d=\u51E0\u5468\u540E|>=7d=\u4E00\u5468\u540E|>=2d=\u51E0\u5929\u540E|>=1d=\u660E\u5929|>=2h=\u51E0\u5C0F\u65F6\u540E|>=1h=\u4E00\u5C0F\u65F6\u540E|>=30m=\u534A\u5C0F\u65F6\u540E|>=2m=\u51E0\u5206\u949F\u540E|>=1m=\u4E00\u5206\u949F\u540E|\u521A\u521A}"
+  - Locale: {fileID: -8170776940505498243, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=Il y a longtemps|<-30d=Il y a un mois|<-14d=Il y a quelques
+      semaines|<-7d=Il y a une semaine|<-2d=Il y a quelques jours|<-1d=Hier|<-2h=Il
+      y a quelques heures|<-1h=Il y a une heure|<-30m=Il y a une demi-heure|<-2m=Il
+      y a quelques minutes|<-1m=Il y a une minute|>=90d=Dans longtemps|>=30d=Dans
+      un mois|>=14d=Dans quelques semaines|>=7d=Dans une semaine|>=2d=Dans quelques
+      jours|>=1d=Demain|>=2h=Dans quelques heures|>=1h=Dans une heure|>=30m=Dans
+      une demi-heure|>=2m=Dans quelques minutes|>=1m=Dans une minute|\xC0 l'instant}"
+  - Locale: {fileID: -4747512038184049170, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: '{0:q|<-90d=Vor langer Zeit|<-30d=Vor einem Monat|<-14d=Vor einigen Wochen|<-7d=Vor
+      einer Woche|<-2d=Vor ein paar Tagen|<-1d=Gestern|<-2h=Vor ein paar Stunden|<-1h=Vor
+      einer Stunde|<-30m=Vor einer halben Stunde|<-2m=Vor ein paar Minuten|<-1m=Vor
+      einer Minute|>=90d=In langer Zeit|>=30d=In einem Monat|>=14d=In einigen Wochen|>=7d=In
+      einer Woche|>=2d=In ein paar Tagen|>=1d=Morgen|>=2h=In ein paar Stunden|>=1h=In
+      einer Stunde|>=30m=In einer halben Stunde|>=2m=In ein paar Minuten|>=1m=In
+      einer Minute|Gerade eben}'
+  - Locale: {fileID: 906744869671443907, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=\u03A0\u03C1\u03B9\u03BD \u03B1\u03C0\u03CC \u03C0\u03BF\u03BB\u03CD
+      \u03BA\u03B1\u03B9\u03C1\u03CC|<-30d=\u03A0\u03C1\u03B9\u03BD \u03B1\u03C0\u03CC
+      \u03AD\u03BD\u03B1\u03BD \u03BC\u03AE\u03BD\u03B1|<-14d=\u03A0\u03C1\u03B9\u03BD
+      \u03B1\u03C0\u03CC \u03BB\u03AF\u03B3\u03B5\u03C2 \u03B5\u03B2\u03B4\u03BF\u03BC\u03AC\u03B4\u03B5\u03C2|<-7d=\u03A0\u03C1\u03B9\u03BD
+      \u03B1\u03C0\u03CC \u03BC\u03AF\u03B1 \u03B5\u03B2\u03B4\u03BF\u03BC\u03AC\u03B4\u03B1|<-2d=\u03A0\u03C1\u03B9\u03BD
+      \u03B1\u03C0\u03CC \u03BB\u03AF\u03B3\u03B5\u03C2 \u03B7\u03BC\u03AD\u03C1\u03B5\u03C2|<-1d=\u03A7\u03B8\u03B5\u03C2|<-2h=\u03A0\u03C1\u03B9\u03BD
+      \u03B1\u03C0\u03CC \u03BB\u03AF\u03B3\u03B5\u03C2 \u03CE\u03C1\u03B5\u03C2|<-1h=\u03A0\u03C1\u03B9\u03BD
+      \u03B1\u03C0\u03CC \u03BC\u03AF\u03B1 \u03CE\u03C1\u03B1|<-30m=\u03A0\u03C1\u03B9\u03BD
+      \u03B1\u03C0\u03CC \u03BC\u03B9\u03C3\u03AE \u03CE\u03C1\u03B1|<-2m=\u03A0\u03C1\u03B9\u03BD
+      \u03B1\u03C0\u03CC \u03BB\u03AF\u03B3\u03B1 \u03BB\u03B5\u03C0\u03C4\u03AC|<-1m=\u03A0\u03C1\u03B9\u03BD
+      \u03B1\u03C0\u03CC \u03AD\u03BD\u03B1 \u03BB\u03B5\u03C0\u03C4\u03CC|>=90d=\u03A3\u03B5
+      \u03C0\u03BF\u03BB\u03CD \u03BA\u03B1\u03B9\u03C1\u03CC|>=30d=\u03A3\u03B5
+      \u03AD\u03BD\u03B1\u03BD \u03BC\u03AE\u03BD\u03B1|>=14d=\u03A3\u03B5 \u03BB\u03AF\u03B3\u03B5\u03C2
+      \u03B5\u03B2\u03B4\u03BF\u03BC\u03AC\u03B4\u03B5\u03C2|>=7d=\u03A3\u03B5 \u03BC\u03AF\u03B1
+      \u03B5\u03B2\u03B4\u03BF\u03BC\u03AC\u03B4\u03B1|>=2d=\u03A3\u03B5 \u03BB\u03AF\u03B3\u03B5\u03C2
+      \u03B7\u03BC\u03AD\u03C1\u03B5\u03C2|>=1d=\u0391\u03CD\u03C1\u03B9\u03BF|>=2h=\u03A3\u03B5
+      \u03BB\u03AF\u03B3\u03B5\u03C2 \u03CE\u03C1\u03B5\u03C2|>=1h=\u03A3\u03B5 \u03BC\u03AF\u03B1
+      \u03CE\u03C1\u03B1|>=30m=\u03A3\u03B5 \u03BC\u03B9\u03C3\u03AE \u03CE\u03C1\u03B1|>=2m=\u03A3\u03B5
+      \u03BB\u03AF\u03B3\u03B1 \u03BB\u03B5\u03C0\u03C4\u03AC|>=1m=\u03A3\u03B5 \u03AD\u03BD\u03B1
+      \u03BB\u03B5\u03C0\u03C4\u03CC|\u039C\u03CC\u03BB\u03B9\u03C2 \u03C4\u03CE\u03C1\u03B1}"
+  - Locale: {fileID: 1245479003261064919, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=\u092C\u0939\u0941\u0924 \u0938\u092E\u092F \u092A\u0939\u0932\u0947|<-30d=\u090F\u0915
+      \u092E\u0939\u0940\u0928\u0947 \u092A\u0939\u0932\u0947|<-14d=\u0915\u0941\u091B
+      \u0939\u092B\u093C\u094D\u0924\u0947 \u092A\u0939\u0932\u0947|<-7d=\u090F\u0915
+      \u0939\u092B\u093C\u094D\u0924\u0947 \u092A\u0939\u0932\u0947|<-2d=\u0915\u0941\u091B
+      \u0926\u093F\u0928 \u092A\u0939\u0932\u0947|<-1d=\u0915\u0932|<-2h=\u0915\u0941\u091B
+      \u0918\u0902\u091F\u0947 \u092A\u0939\u0932\u0947|<-1h=\u090F\u0915 \u0918\u0902\u091F\u0947
+      \u092A\u0939\u0932\u0947|<-30m=\u0906\u0927\u0947 \u0918\u0902\u091F\u0947
+      \u092A\u0939\u0932\u0947|<-2m=\u0915\u0941\u091B \u092E\u093F\u0928\u091F \u092A\u0939\u0932\u0947|<-1m=\u090F\u0915
+      \u092E\u093F\u0928\u091F \u092A\u0939\u0932\u0947|>=90d=\u092C\u0939\u0941\u0924
+      \u0938\u092E\u092F \u092C\u093E\u0926|>=30d=\u090F\u0915 \u092E\u0939\u0940\u0928\u0947
+      \u092E\u0947\u0902|>=14d=\u0915\u0941\u091B \u0939\u092B\u093C\u094D\u0924\u094B\u0902
+      \u092E\u0947\u0902|>=7d=\u090F\u0915 \u0939\u092B\u093C\u094D\u0924\u0947 \u092E\u0947\u0902|>=2d=\u0915\u0941\u091B
+      \u0926\u093F\u0928\u094B\u0902 \u092E\u0947\u0902|>=1d=\u0915\u0932|>=2h=\u0915\u0941\u091B
+      \u0918\u0902\u091F\u094B\u0902 \u092E\u0947\u0902|>=1h=\u090F\u0915 \u0918\u0902\u091F\u0947
+      \u092E\u0947\u0902|>=30m=\u0906\u0927\u0947 \u0918\u0902\u091F\u0947 \u092E\u0947\u0902|>=2m=\u0915\u0941\u091B
+      \u092E\u093F\u0928\u091F\u094B\u0902 \u092E\u0947\u0902|>=1m=\u090F\u0915 \u092E\u093F\u0928\u091F
+      \u092E\u0947\u0902|\u0905\u092D\u0940-\u0905\u092D\u0940}"
+  - Locale: {fileID: -782337820601032030, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: '{0:q|<-90d=Lama sekali|<-30d=Sebulan yang lalu|<-14d=Beberapa minggu
+      yang lalu|<-7d=Seminggu yang lalu|<-2d=Beberapa hari yang lalu|<-1d=Kemarin|<-2h=Beberapa
+      jam yang lalu|<-1h=Sejam yang lalu|<-30m=Setengah jam yang lalu|<-2m=Beberapa
+      menit yang lalu|<-1m=Semenit yang lalu|>=90d=Dalam waktu lama|>=30d=Dalam sebulan|>=14d=Dalam
+      beberapa minggu|>=7d=Dalam seminggu|>=2d=Dalam beberapa hari|>=1d=Besok|>=2h=Dalam
+      beberapa jam|>=1h=Dalam sejam|>=30m=Dalam setengah jam|>=2m=Dalam beberapa
+      menit|>=1m=Dalam semenit|Baru saja}'
+  - Locale: {fileID: 8454123316322210107, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: '{0:q|<-90d=Molto tempo fa|<-30d=Un mese fa|<-14d=Qualche settimana fa|<-7d=Una
+      settimana fa|<-2d=Qualche giorno fa|<-1d=Ieri|<-2h=Qualche ora fa|<-1h=Un''ora
+      fa|<-30m=Mezz''ora fa|<-2m=Qualche minuto fa|<-1m=Un minuto fa|>=90d=Tra molto
+      tempo|>=30d=Tra un mese|>=14d=Tra qualche settimana|>=7d=Tra una settimana|>=2d=Tra
+      qualche giorno|>=1d=Domani|>=2h=Tra qualche ora|>=1h=Tra un''ora|>=30m=Tra
+      mezz''ora|>=2m=Tra qualche minuto|>=1m=Tra un minuto|Proprio ora}'
+  - Locale: {fileID: -7634594623133805022, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=\u305A\u3063\u3068\u524D|<-30d=1\u30F6\u6708\u524D|<-14d=\u6570\u9031\u9593\u524D|<-7d=1\u9031\u9593\u524D|<-2d=\u6570\u65E5\u524D|<-1d=\u6628\u65E5|<-2h=\u6570\u6642\u9593\u524D|<-1h=1\u6642\u9593\u524D|<-30m=30\u5206\u524D|<-2m=\u6570\u5206\u524D|<-1m=1\u5206\u524D|>=90d=\u305A\u3063\u3068\u5F8C|>=30d=1\u30F6\u6708\u5F8C|>=14d=\u6570\u9031\u9593\u5F8C|>=7d=1\u9031\u9593\u5F8C|>=2d=\u6570\u65E5\u5F8C|>=1d=\u660E\u65E5|>=2h=\u6570\u6642\u9593\u5F8C|>=1h=1\u6642\u9593\u5F8C|>=30m=30\u5206\u5F8C|>=2m=\u6570\u5206\u5F8C|>=1m=1\u5206\u5F8C|\u305F\u3063\u305F\u4ECA}"
+  - Locale: {fileID: 2170051307899629299, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=\uC624\uB798\uC804|<-30d=\uD55C \uB2EC \uC804|<-14d=\uBA87
+      \uC8FC \uC804|<-7d=\uC77C\uC8FC\uC77C \uC804|<-2d=\uBA70\uCE60 \uC804|<-1d=\uC5B4\uC81C|<-2h=\uBA87
+      \uC2DC\uAC04 \uC804|<-1h=\uD55C \uC2DC\uAC04 \uC804|<-30m=30\uBD84 \uC804|<-2m=\uBA87
+      \uBD84 \uC804|<-1m=1\uBD84 \uC804|>=90d=\uBA3C \uBBF8\uB798\uC5D0|>=30d=\uD55C
+      \uB2EC \uD6C4|>=14d=\uBA87 \uC8FC \uD6C4|>=7d=\uC77C\uC8FC\uC77C \uD6C4|>=2d=\uBA70\uCE60
+      \uD6C4|>=1d=\uB0B4\uC77C|>=2h=\uBA87 \uC2DC\uAC04 \uD6C4|>=1h=\uD55C \uC2DC\uAC04
+      \uD6C4|>=30m=30\uBD84 \uD6C4|>=2m=\uBA87 \uBD84 \uD6C4|>=1m=1\uBD84 \uD6C4|\uBC29\uAE08
+      \uC804}"
+  - Locale: {fileID: -5993577645703193449, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=H\xE1 muito tempo|<-30d=H\xE1 um m\xEAs|<-14d=H\xE1 algumas
+      semanas|<-7d=H\xE1 uma semana|<-2d=H\xE1 alguns dias|<-1d=Ontem|<-2h=H\xE1
+      algumas horas|<-1h=H\xE1 uma hora|<-30m=H\xE1 meia hora|<-2m=H\xE1 alguns minutos|<-1m=H\xE1
+      um minuto|>=90d=Daqui a muito tempo|>=30d=Em um m\xEAs|>=14d=Em algumas semanas|>=7d=Em
+      uma semana|>=2d=Em alguns dias|>=1d=Amanh\xE3|>=2h=Em algumas horas|>=1h=Em
+      uma hora|>=30m=Em meia hora|>=2m=Em alguns minutos|>=1m=Em um minuto|Agora
+      mesmo}"
+  - Locale: {fileID: -4578099899835064837, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=\u0414\u0430\u0432\u043D\u044B\u043C-\u0434\u0430\u0432\u043D\u043E|<-30d=\u041C\u0435\u0441\u044F\u0446
+      \u043D\u0430\u0437\u0430\u0434|<-14d=\u041D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E
+      \u043D\u0435\u0434\u0435\u043B\u044C \u043D\u0430\u0437\u0430\u0434|<-7d=\u041D\u0435\u0434\u0435\u043B\u044E
+      \u043D\u0430\u0437\u0430\u0434|<-2d=\u041D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E
+      \u0434\u043D\u0435\u0439 \u043D\u0430\u0437\u0430\u0434|<-1d=\u0412\u0447\u0435\u0440\u0430|<-2h=\u041D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E
+      \u0447\u0430\u0441\u043E\u0432 \u043D\u0430\u0437\u0430\u0434|<-1h=\u0427\u0430\u0441
+      \u043D\u0430\u0437\u0430\u0434|<-30m=\u041F\u043E\u043B\u0447\u0430\u0441\u0430
+      \u043D\u0430\u0437\u0430\u0434|<-2m=\u041D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E
+      \u043C\u0438\u043D\u0443\u0442 \u043D\u0430\u0437\u0430\u0434|<-1m=\u041C\u0438\u043D\u0443\u0442\u0443
+      \u043D\u0430\u0437\u0430\u0434|>=90d=\u041E\u0447\u0435\u043D\u044C \u043D\u0435\u0441\u043A\u043E\u0440\u043E|>=30d=\u0427\u0435\u0440\u0435\u0437
+      \u043C\u0435\u0441\u044F\u0446|>=14d=\u0427\u0435\u0440\u0435\u0437 \u043D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E
+      \u043D\u0435\u0434\u0435\u043B\u044C|>=7d=\u0427\u0435\u0440\u0435\u0437 \u043D\u0435\u0434\u0435\u043B\u044E|>=2d=\u0427\u0435\u0440\u0435\u0437
+      \u043D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E \u0434\u043D\u0435\u0439|>=1d=\u0417\u0430\u0432\u0442\u0440\u0430|>=2h=\u0427\u0435\u0440\u0435\u0437
+      \u043D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E \u0447\u0430\u0441\u043E\u0432|>=1h=\u0427\u0435\u0440\u0435\u0437
+      \u0447\u0430\u0441|>=30m=\u0427\u0435\u0440\u0435\u0437 \u043F\u043E\u043B\u0447\u0430\u0441\u0430|>=2m=\u0427\u0435\u0440\u0435\u0437
+      \u043D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E \u043C\u0438\u043D\u0443\u0442|>=1m=\u0427\u0435\u0440\u0435\u0437
+      \u043C\u0438\u043D\u0443\u0442\u0443|\u0422\u043E\u043B\u044C\u043A\u043E \u0447\u0442\u043E}"
+  - Locale: {fileID: -2153803791298449011, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=Uzun zaman \xF6nce|<-30d=Bir ay \xF6nce|<-14d=Birka\xE7 hafta
+      \xF6nce|<-7d=Bir hafta \xF6nce|<-2d=Birka\xE7 g\xFCn \xF6nce|<-1d=D\xFCn|<-2h=Birka\xE7
+      saat \xF6nce|<-1h=Bir saat \xF6nce|<-30m=Yar\u0131m saat \xF6nce|<-2m=Birka\xE7
+      dakika \xF6nce|<-1m=Bir dakika \xF6nce|>=90d=Uzun s\xFCre sonra|>=30d=Bir ay
+      sonra|>=14d=Birka\xE7 hafta sonra|>=7d=Bir hafta sonra|>=2d=Birka\xE7 g\xFCn
+      sonra|>=1d=Yar\u0131n|>=2h=Birka\xE7 saat sonra|>=1h=Bir saat sonra|>=30m=Yar\u0131m
+      saat sonra|>=2m=Birka\xE7 dakika sonra|>=1m=Bir dakika sonra|Az \xF6nce}"
+  - Locale: {fileID: -2647112314400262711, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "{0:q|<-90d=Amser maith yn \xF4l|<-30d=Mis yn \xF4l|<-14d=Ychydig wythnosau
+      yn \xF4l|<-7d=Wythnos yn \xF4l|<-2d=Ychydig ddyddiau yn \xF4l|<-1d=Ddoe|<-2h=Ychydig
+      oriau yn \xF4l|<-1h=Awr yn \xF4l|<-30m=Hanner awr yn \xF4l|<-2m=Ychydig funudau
+      yn \xF4l|<-1m=Munud yn \xF4l|>=90d=Ymhen amser maith|>=30d=Ymhen mis|>=14d=Ymhen
+      ychydig wythnosau|>=7d=Ymhen wythnos|>=2d=Ymhen ychydig ddyddiau|>=1d=Yfory|>=2h=Ymhen
+      ychydig oriau|>=1h=Ymhen awr|>=30m=Ymhen hanner awr|>=2m=Ymhen ychydig funudau|>=1m=Ymhen
+      munud|Nawr}"

@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5182171563d8a704b982ffd523a14724, type: 3}
+  m_Name: Credits
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedString
+  DebugContextInfo:
+    OwnerName: Credits
+    OwnerType: LocalizedString
+    AssetPath: Assets/Localization/Currency/Credits.asset
+    HierarchyPath: 
+    PropertyPath: LocalizedString
+  Description: "The name of a virtual currency used in our game. \nIt is visually
+    represented as a credit card. \nFor turkish, use the turkish word for 'token'\n"
+  Values:
+  - Locale: {fileID: -2137289141961439803, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: Credits
+  - Locale: {fileID: 4724877799100478756, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\u0627\u0644\u0631\u0635\u064A\u062F"
+  - Locale: {fileID: -2461523984715262568, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\u70B9\u5238"
+  - Locale: {fileID: -8170776940505498243, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "Cr\xE9dits"
+  - Locale: {fileID: -4747512038184049170, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: Credits
+  - Locale: {fileID: 906744869671443907, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\u03A0\u03B9\u03C3\u03C4\u03CE\u03C3\u03B5\u03B9\u03C2"
+  - Locale: {fileID: 1245479003261064919, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\u0915\u094D\u0930\u0947\u0921\u093F\u091F\u094D\u0938"
+  - Locale: {fileID: -782337820601032030, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: Kredit
+  - Locale: {fileID: 8454123316322210107, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: Crediti
+  - Locale: {fileID: -7634594623133805022, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\u30AF\u30EC\u30B8\u30C3\u30C8"
+  - Locale: {fileID: 2170051307899629299, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\uD06C\uB808\uB527"
+  - Locale: {fileID: -5993577645703193449, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "Cr\xE9ditos"
+  - Locale: {fileID: -4578099899835064837, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: "\u041A\u0440\u0435\u0434\u0438\u0442\u044B"
+  - Locale: {fileID: -2153803791298449011, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: Jeton
+  - Locale: {fileID: -2647112314400262711, guid: b627e09553425cd459b98a711e93a543, type: 2}
+    Value: Credydau

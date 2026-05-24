@@ -1,0 +1,138 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0605eb6777c11a4468d9fd35aa1e3c94, type: 3}
+  m_Name: BuiltInFormatterRules
+  m_EditorClassIdentifier: TimboJimbo.Localization.Editor::AdditionalProjectContextBlocks
+  ContextBlocks:
+  - _title: Pluralization Formatter
+    _body: "# Localization Pluralization Guidelines\r\n\r\nTranslate strings using
+      our custom C# plural formatter. You MUST adapt the pluralization to match the
+      **target language's** grammatical rules (CLDR), overriding the source language's
+      structure.\r\n\r\n## 1. Syntax & Supported Keys\r\n- **Format:** `{index:plural|key=value|key=value}`\r\n-
+      **Keys:** `zero`, `one`, `two`, `few`, `many`, `other` (Case-insensitive. If
+      used, maintain this exact order. `other` is mandatory if the formatter is used).\r\n\r\n###
+      Target Language Key Matrix (CRITICAL)\r\nOnly use the keys explicitly listed
+      for your target language code. Do NOT use keys omitted from its list:\r\n-
+      **No Plurals (Only use `other`):** `zh`, `ja`, `ko`, `vi`, `id`, `ms`, `th`,
+      `km`, `lo`, `my`\r\n- **Only `one`, `other`:** `fr`, `hi`, `bn`, `gu`, `mr`,
+      `pa`, `fa`\r\n- **Only `one`, `few`, `many`, `other`:** `ru`, `uk`, `be`, `sr`,
+      `hr`, `bs`, `pl` *(0 maps to `many` in Slavic and `other` in Polish. Never
+      use `zero` or `two` here!)*\r\n- **Only `one`, `few`, `other`:** `cs`, `sk`,
+      `ro`, `lt`\r\n- **Only `zero`, `one`, `other`:** `lv`\r\n- **Full Set (`zero`,
+      `one`, `two`, `few`, `many`, `other`):** `ar`\r\n- **Default (Only `zero`,
+      `one`, `other`):** `en`, `de`, `es`, `pt`, `it`, `nl`, `sv`, `da`, `no`, `el`,
+      `bg`, `et`, `fi`, `hu`\r\n\r\n## 2. CRITICAL TRANSLATION BEHAVIORS\r\n\r\n**A.
+      The \"No-Plural\" Bypass (Asian/Turkic Languages)**\r\nIf the target language
+      uses a static noun regardless of the number (e.g., Turkish, Japanese, Chinese),
+      **DELETE the plural block entirely.**\r\n- *Source:* `You have {0:N0} {0:plural|one=message|other=messages}.`\r\n-
+      *Target (Turkish):* `{0:N0} yeni mesaj\u0131n var.`\r\n\r\n**B. Surgical Scoping
+      & Number Omission (Complex Languages)**\r\nIf the target language implies the
+      quantity in the singular or dual word form (e.g., Arabic), you must delete
+      the external number and move it *inside* the block using `[#]`. \r\n**CRUCIAL:**
+      Keep the block wrapped *only* around the specific noun/adjective. Leave all
+      surrounding static text outside the block.\r\n- *Source:* `There are {0:N0}
+      new {0:plural|one=car|other=cars} for sale!`\r\n- *Target (Arabic):* `\u0647\u0646\u0627\u0643
+      {0:plural|zero=0 \u0633\u064A\u0627\u0631\u0627\u062A \u062C\u062F\u064A\u062F\u0629|one=\u0633\u064A\u0627\u0631\u0629
+      \u062C\u062F\u064A\u062F\u0629 \u0648\u0627\u062D\u062F\u0629|two=\u0633\u064A\u0627\u0631\u062A\u0627\u0646
+      \u062C\u062F\u064A\u062F\u062A\u0627\u0646|few=[#:N0] \u0633\u064A\u0627\u0631\u0627\u062A
+      \u062C\u062F\u064A\u062F\u0629|many=[#:N0] \u0633\u064A\u0627\u0631\u0629|other=[#:N0]
+      \u0633\u064A\u0627\u0631\u0629} \u0644\u0644\u0628\u064A\u0639!`\r\n*(Note:
+      The external `{0:N0}` is removed, the digit is omitted for 1 and 2, `[#:N0]`
+      is used for the rest, and \"There are/for sale!\" remains outside the block).*\r\n\r\n**C.
+      Grammatical Shift**\r\nYou are free to move the plural block away from the
+      noun and onto a verb or adjective if the target grammar dictates it (e.g.,
+      Hindi verbs).\r\n\r\n---\r\n\r\n## Cheat Sheet Examples\r\n* **French (Basic):**
+      `Vous avez {0:N0} {0:plural|one=nouveau message|other=nouveaux messages}.`\r\n*
+      **Turkish (Bypass):** `Bug\xFCn {0:N0} elma ald\u0131m.` *(Formatter dropped
+      entirely)*\r\n* **Hindi (Shift):** `\u092C\u093F\u0915\u094D\u0930\u0940 \u0915\u0947
+      \u0932\u093F\u090F {0:N0} \u0915\u093E\u0930 \u0909\u092A\u0932\u092C\u094D\u0927
+      {0:plural|one=\u0939\u0948|other=\u0939\u0948\u0902}!` *(Formatter moved to
+      the verb)*\r\n* **Polish (Surgical):** `Znalaz\u0142e\u015B {0:plural|one=[#:N0]
+      monet\u0119|few=[#:N0] monety|many=[#:N0] monet|other=[#:N0] monety}!` *(Numbers
+      moved inside, cases applied. Polish does NOT support or use zero/two).*"
+  - _title: Map Formatter
+    _body: "# Localization Map Formatter Guidelines\r\n\r\nTranslate strings using
+      our custom C# map formatter. The map formatter swaps in specific text based
+      on an exact match with the input variable. You MUST adapt the output text to
+      the target language while leaving the programmatic keys completely untouched.\r\n\r\n##
+      1. Syntax & Structure\r\n- **Format:** `{index:map|key1=value1|key2=value2|other=fallback}`\r\n-
+      **Alias:** `m` can be used instead of `map` (e.g., `{0:m|...}`).\r\n- **Rule:**
+      Every entry MUST have a key (`key=value`), except for `other=...` which is
+      the fallback. Unkeyed entries will break the string.\r\n- **Valid Keys:** Exact
+      strings (case-insensitive), bools (`true`/`false`), or literal numbers (`0`,
+      `42`, etc. using invariant culture).\r\n\r\n## 2. CRITICAL TRANSLATION BEHAVIORS\r\n\r\n**A.
+      NEVER Translate the Keys (Left Side of `=`)**\r\nKeys are runtime values. Translating
+      them will break the code. Translate ONLY the value on the right side of the
+      `=`.\r\n- *Source:* `{0:map|red=Red|blue=Blue|other=Unknown color}`\r\n- *Target
+      (French):* `{0:map|red=Rouge|blue=Bleu|other=Couleur inconnue}` *(Notice 'red'
+      and 'blue' remain in English).*\r\n\r\n**B. Preserve Every Key (No Dropping/Merging)**\r\nThe
+      C# code expects a specific set of possible inputs. Do not drop, add, or combine
+      keys.\r\n\r\n**C. Surgical Scoping & Grammatical Shifting**\r\nYou may freely
+      move surrounding static text in and out of the block to match target grammar,
+      as long as the block stays wrapped around the variable part.\r\n- *Source:*
+      `Status: {0:map|true=Online|false=Offline}.`\r\n- *Target (Japanese):* `\u30B9\u30C6\u30FC\u30BF\u30B9:
+      {0:map|true=\u30AA\u30F3\u30E9\u30A4\u30F3|false=\u30AA\u30D5\u30E9\u30A4\u30F3}\u3002`\r\n\r\n**D.
+      Map vs. Plural**\r\nUse `map` for arbitrary discrete values (colors, states,
+      specific numeric callouts like \"1=snake eyes\"). Use the `plural` formatter
+      if the choice is driven by grammatical number rules.\r\n\r\n---\r\n\r\n## Cheat
+      Sheet Examples\r\n* **Bool Toggle:** `{0:map|true=Enabled|false=Disabled}`\r\n*
+      **String Enum (Spanish):** `{0:m|gold=Oro|silver=Plata|bronze=Bronce|other=Sin
+      medalla}` *(Keys untouched!)*\r\n* **Numeric Callout (Surgical):** `You rolled
+      a {0:map|1=1 \u2014 snake eyes!|20=20 \u2014 critical hit!|other=[#].}`"
+  - _title: Query Formatter
+    _body: "# Localization Query Formatter Guidelines\r\n\r\nTranslate strings using
+      our custom C# query formatter. The query formatter acts like an if/else chain,
+      picking a string based on conditional logic evaluated top-to-bottom. \r\n\r\n##
+      1. Syntax & Structure\r\n- **Format:** `{index:query|cond1=value1|cond2=value2|defaultValue}`\r\n-
+      **Alias:** `q` can be used instead of `query` (e.g., `{0:q|...}`).\r\n- **The
+      Default Value:** The fallback has NO equals sign (`=`). There can only be one
+      default, and it MUST be placed at the very end.\r\n\r\n## 2. Supported Conditions
+      (The Left Side)\r\n- **Numbers:** Operators `<, <=, >, >=, =/==`, or a bare
+      number for exact match (e.g., `<=10`, `42`). Uses invariant culture (always
+      `.` for decimals).\r\n- **Time/Dates:** Operator + duration + suffix `ms, s,
+      m, h, d`. (e.g., `<-1d` is past, `>30m` is future).\r\n- **Strings/Bools:**
+      Exact matches (case-insensitive).\r\n\r\n## 3. CRITICAL TRANSLATION BEHAVIORS\r\n\r\n**A.
+      NEVER Translate the Conditions (Left Side of `=`)**\r\nThe left side is code,
+      not text. Do not localize the conditions, numbers, operators, or time suffixes.
+      Translate ONLY the right side and the default value.\r\n- *Source:* `{0:query|<=0=none|<10=a
+      few|>=1000=heaps|[#:N0] items}`\r\n- *Target (French):* `{0:query|<=0=aucun|<10=quelques-uns|>=1000=des
+      tas|[#:N0] articles}`\r\n\r\n**B. Strict Ordering (Do Not Sort)**\r\nEntries
+      are evaluated top-to-bottom. The first match wins. Reordering the keys will
+      break the logic. Keep the default at the end.\r\n\r\n**C. Time Suffixes are
+      Code**\r\nSuffixes like `ms, s, m, h, d` are programmatic. Do not translate
+      them into your target language (e.g., do not change `d` to `j` for French *jours*).\r\n-
+      *Target (German):* `{0:query|<-1d=gestern oder fr\xFCher|<0=heute, fr\xFCher|>1d=in
+      mehr als einem Tag|bald}`\r\n\r\n**D. Surgical Scoping & Grammatical Shifting**\r\nIf
+      the target language naturally includes the digit inside the chosen phrase,
+      delete the outer base parameter (`{0}`) and move it inside using `[#]`. Move
+      the block onto verbs or adjectives if target grammar demands it.\r\n\r\n---\r\n\r\n##
+      Cheat Sheet Examples\r\n* **Numeric Thresholds:** `Score: {0:N0} \u2014 {0:query|<=0=try
+      again!|<50=keep going|<90=great!|perfect!}`\r\n* **Relative Time (Spanish):**
+      `Visto por \xFAltima vez {0:query|<-7d=hace m\xE1s de una semana|<-1d=hace
+      unos d\xEDas|<0=hoy m\xE1s temprano|<1h=en menos de una hora|en el futuro}.`
+      *(Conditions untouched!)*\r\n* **Bare Default & Formatting:** `{0:q|0=Empty|<10=Almost
+      empty|>=100=Full|[#:N0] / 100}`"
+  - _title: Formatter Params
+    _body: "## Parameter vs. Internal Placeholder\r\n- `{0}` (or `{1}`, etc.) is
+      the base parameter used *outside* the format block.\r\n- `[#]` is the internal
+      placeholder used *inside* the format block to reference that same active number.\r\n-
+      **NO NESTED BRACES `{}`:** Internal placeholders MUST use square brackets `[]`
+      (e.g., `[#]`, `[#:N0]`).\r\n  - **CRITICAL:** Standard curly brackets `{}`
+      are strictly FORBIDDEN inside custom formatters (`plural`, `map`, `query`).
+      \r\n  - **Do NOT nest or cross-reference other variables** like `{1}` or `{2}`
+      inside the plural block. If you must output multiple variables, place them
+      outside the block entirely.\r\n  - *Invalid (Nested/Cross-referenced):* `{0:plural|one={1}
+      apple|other=[#] apples}`\r\n  - *Invalid (Nested self):* `{0:plural|one={[#]}
+      apple|other=[#] apples}`\r\n  - *Valid:* `{1} {0:plural|one=apple|other=[#]
+      apples}`\r\n- **Formatting:** You can apply basic C# formatting to the internal
+      placeholder (e.g., `[#:N0]`) but you can not use `plural`, `map` and `query`
+      formatters on the internal placeholder. No nested!\r\n"
