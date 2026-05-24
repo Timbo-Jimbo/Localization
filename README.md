@@ -1,9 +1,6 @@
 # Localization Package
 
-- **`LocalizedString` / `LocalizedSprite`** hold the per-locale data.
-- **`LocalizableString` / `LocalizableSprite`** are flexible references that can point to localized data or use a direct value.
-- **Applicators** read the active locale and apply the correct text or sprite to a target component.
-- **Locale-aware formatting** is supported, so regular C# formatting (and `ZString`) uses the active locale for things like numbers and dates.
+A simple localization package for Unity with a built in AI Transation tool.
 
 # Installation
 
@@ -20,6 +17,34 @@ https://github.com/Timbo-Jimbo/Localization.git?path=Packages/com.timbojimbo.loc
 ```
 
 # Usage
+
+## Project Setup
+
+After installation, a popup will appear and help you get started generating some assets. Choose any folder inside `Assets` and it'll create a minimal working setup for you:
+
+- a `LocalizationSettings.asset`
+- an English default locale (`en`)
+- a sample `HelloWorld.asset` localized string
+
+By default, most projects will probably put these under something like `Assets/Localization`, but the exact location is not important.
+
+If you rather set things up manually, then you can find all create options you need under `Create > Localization > Settings and Config`
+
+> [!IMPORTANT]
+> `LocalizationSettings` asset must be present in Unity's **Preloaded Assets** so it is available at runtime. The scaffolding helper adds it for you automatically. If you create or move the asset manually, double-check it under `Project Settings > Player > Preloaded Assets`.
+
+## Localized Value Assets
+Localized values are `ScriptableObject` assets that store per-locale data.
+
+You can create them from the Project window with:
+
+- `Create > Localization > Localized String`
+- `Create > Localization > Localized Sprite`
+
+After creating one, open it in the inspector and fill in the value for your default locale first. The inspector will also show the other locales from `LocalizationSettings`.
+
+Asset location is not important here either. Put them wherever they make sense for your project structure.
+
 ## Applicator Components
 
 Applicators are components you add to a `GameObject` to automatically push a localized value onto another component.
