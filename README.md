@@ -1,29 +1,74 @@
-# Localization Package
+# Timbo Jimbo - Localization
 
 A simple localization package for Unity with a built in AI Transation tool.
 
-> [!IMPORTANT]
-> This package is new - use at your own risk! :)
+✨ **Easy to Use**
+
+Built around lightweight `ScriptableObject` assets and a clean runtime API. No databases, no complex pipelines.
+
+🌍 **Built-In AI Translation**
+
+Generate translations directly inside the Unity Editor using OpenAI-compatible providers like OpenAI and Google Gemini. Includes support for translation context, glossaries, and project-wide rules to keep terminology consistent. BYOK.
+
+📝 **Advanced Formatting Support**
+
+Supports custom formatter blocks for:
+- plurals
+- conditional queries
+- enum/value mapping
+
+⚡ **Automatic UI Updating**
+
+Applicator components automatically refresh UI when:
+- the active locale changes
+- localized assets are modified
+- formatting parameters update
+
+Includes built-in support for:
+- TextMeshPro
+- Legacy Unity UI Text
+- UniText integration
 
 # Installation
 
-This package depends on [ZString.](https://github.com/Cysharp/ZString)
-Install both packages through **Window > Package Manager** using **Add package from git URL...**.
+> [!WARNING]
+> This package is new - use at your own risk! :)
 
-1. Add ZString first: 
-```
-https://github.com/Cysharp/ZString.git?path=src/ZString.Unity/Assets/Scripts/ZString
-```
-2. Then add Localization: 
-```
-https://github.com/Timbo-Jimbo/Localization.git?path=Packages/com.timbojimbo.localization
-```
+This package is available on [OpenUPM](https://openupm.com/packages/com.timbojimbo.localization)
+
+1. Add the Scoped Registry:
+	- Open **Edit > Project Settings > Package Manager**
+	- Add a new Scoped Registry (Or append the missing Scopes if you already have it added):
+ 		- Name: `OpenUPM`
+   		- URL: `https://package.openupm.com/`
+      	- Scope(s): `com.cysharp` and `com.timbojimbo`
+2. Install the package
+	- Open **Window > Package Manager**
+ 	- Click Add and select **Add package from git URL...**
+    - Paste `com.timbojimbo.localization`
+
+Done!
+
+> [!NOTE]
+> This package depends on [ZString](https://github.com/Cysharp/ZString) - hence the `com.cysharp` scope!
+
+<details>
+<summary>Install from GitHub instead (Not Recommended)</summary>
+
+You can also add it directly from GitHub on Unity 2019.4+. Note that you won't be able to receive updates through Package Manager this way, you'll have to update manually.
+
+- Open **Window > Package Manager**
+- Click Add and select **Add package from git URL...**
+- Paste `https://github.com/Cysharp/ZString.git?path=src/ZString.Unity/Assets/Scripts/ZString`
+- Click add and select **Add package from git URL...** again
+- Paste `https://github.com/Timbo-Jimbo/Localization.git?path=Packages/com.timbojimbo.localization`
+</details>
 
 # Usage
 
 ## Project Setup
 
-After installation, a popup will appear and help you get started generating some assets. Choose any folder inside `Assets` and it'll create a minimal working setup for you:
+After installation, a popup will appear and help you get started. Choose any folder inside `Assets` and it'll create a minimal working setup for you:
 
 - a `LocalizationSettings.asset`
 - an English default locale (`en`)
@@ -31,18 +76,18 @@ After installation, a popup will appear and help you get started generating some
 
 By default, most projects will probably put these under something like `Assets/Localization`, but the exact location is not important.
 
-If you rather set things up manually, then you can find all create options you need under `Create > Localization > Settings and Config`
+If you rather set things up manually then you'll find all you need under **Create > Localization > Settings and Config**
 
 > [!IMPORTANT]
-> `LocalizationSettings` asset must be present in Unity's **Preloaded Assets** so it is available at runtime. The scaffolding helper adds it for you automatically. If you create or move the asset manually, double-check it under `Project Settings > Player > Preloaded Assets`.
+> `LocalizationSettings` asset must be present in Unity's **Preloaded Assets** so it is available at runtime. The scaffolding helper adds it for you automatically. If you create the asset manually, make sure it's included - **Project Settings > Player > Preloaded Assets**.
 
 ## Localized Value Assets
 Localized values are `ScriptableObject` assets that store per-locale data.
 
 You can create them from the Project window with:
 
-- `Create > Localization > Localized String`
-- `Create > Localization > Localized Sprite`
+- **Create > Localization > Localized String**
+- **Create > Localization > Localized Sprite**
 
 After creating one, open it in the inspector and fill in the value for your default locale first. The inspector will also show the other locales from `LocalizationSettings`.
 
@@ -123,8 +168,8 @@ string scoreText = myLocalizableString.Resolve(locale, score);
 
 Create an AI translator asset through **Localization/Settings and Config/AI Translator (Editor)** and configure it via the inspector.
 
-> [!IMPORTANT]
-> The API key is entered in the inspector and stored in **EditorPrefs**, not inside the asset itself. You can safely commit your changes. Make sure to back up your API Keys because they won't be stored here! You'll need to enter it again on each machine you use.
+> [!NOTE]
+> The API key is entered in the inspector and stored in **EditorPrefs**, not inside the asset itself. You can safely commit this asset. Make sure to back up your API Keys, and remember that you'll need to enter this again on other machines.
  
 ### Context Blocks
 
@@ -139,7 +184,7 @@ They are useful for things like:
 - formatting rules
 - project-specific translation dos and don'ts
 
-If you have guidance that should apply everywhere, you can also create a **Project Wide Translation Context Blocks** asset. The blocks in this asset are appended to each request.
+If you have guidance that should apply everywhere, you can also create a **Project Wide Translation Context Blocks** asset. Context Blocks from any of these assets anywhere in your project will be appended to all translation requests.
 
 ### OpenAI-Compatible Base URLs
 
@@ -154,10 +199,8 @@ Examples:
 
 Example model names:
 
-- OpenAI: `gpt-4.1-mini`
-- Gemini: `gemini-3.5-flash`
-
-If you are using a proxy or another OpenAI-compatible service, set its base URL here as long as it supports the same chat completions format.
+- **OpenAI:** `gpt-4.1-mini`
+- **Gemini:** `gemini-3.5-flash`
 
 ## Glossary
 Use the glossary for terms you want translated consistently across your project.

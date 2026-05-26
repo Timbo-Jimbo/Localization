@@ -1,12 +1,12 @@
 {
   "name": "com.timbojimbo.localization",
   "displayName": "Localization",
-  "version": "1.0.0",
+  "description": "A simple localization package for Unity with a built in AI Translation tool.",
+  "version": "1.1.0",
   "unity": "6000.0",
   "unityRelease": "0f1",
-  "description": "Todo",
   "dependencies": {
-    "com.cysharp.zstring": "https://github.com/Cysharp/ZString.git?path=src/ZString.Unity/Assets/Scripts/ZString#2.6.0",
+    "com.cysharp.zstring": "2.6.0",
     "com.unity.ugui": "2.0.0"
   },    
   "author": {

@@ -1,3 +1,8 @@
-## [0.1.0] - 2026-05-24
+## [1.1.0] - 2026-05-24
 
-### This is the first release of *\<Localization\>*.
+- Submitted package to OpenUPM.
+- Updated installation instructions. 
+ 
+## [1.0.0] - 2026-05-24
+
+- This is the first release of *\<Localization\>*.
