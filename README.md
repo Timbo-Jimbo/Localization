@@ -44,8 +44,8 @@ This package is available on [OpenUPM](https://openupm.com/packages/com.timbojim
       	- Scope(s): `com.cysharp` and `com.timbojimbo`
 2. Install the package
 	- Open **Window > Package Manager**
- 	- Click Add and select **Add package from git URL...**
-    - Paste `com.timbojimbo.localization`
+ 	- Click Add and select **Add package by name...**
+    - Paste name: `com.timbojimbo.localization`
 
 Done!
 
