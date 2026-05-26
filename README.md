@@ -31,9 +31,6 @@ Includes built-in support for:
 
 # Installation
 
-> [!WARNING]
-> This package is new - use at your own risk! :)
-
 This package is available on [OpenUPM](https://openupm.com/packages/com.timbojimbo.localization)
 
 1. Add the Scoped Registry:
@@ -49,6 +46,9 @@ This package is available on [OpenUPM](https://openupm.com/packages/com.timbojim
 
 Done!
 
+
+> [!WARNING]
+> This package is new - use at your own risk! :)
 > [!NOTE]
 > This package depends on [ZString](https://github.com/Cysharp/ZString) - hence the `com.cysharp` scope!
 
