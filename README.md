@@ -1,6 +1,6 @@
 # Timbo Jimbo - Localization
 
-A simple localization package for Unity with a built in AI Transation tool.
+A simple localization package for Unity with a built in AI Translation tool.
 
 ✨ **Easy to Use**
 
