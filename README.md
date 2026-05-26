@@ -2,6 +2,9 @@
 
 A simple localization package for Unity with a built in AI Transation tool.
 
+> [!IMPORTANT]
+> This package is new - use at your own risk! :)
+
 # Installation
 
 This package depends on [ZString.](https://github.com/Cysharp/ZString)
