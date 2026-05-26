@@ -49,6 +49,7 @@ Done!
 
 > [!WARNING]
 > This package is new - use at your own risk! :)
+
 > [!NOTE]
 > This package depends on [ZString](https://github.com/Cysharp/ZString) - hence the `com.cysharp` scope!
 
