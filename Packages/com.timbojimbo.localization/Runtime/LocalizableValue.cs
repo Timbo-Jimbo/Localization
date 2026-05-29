@@ -11,7 +11,7 @@ namespace TimboJimbo.Localization
         public TValue Unlocalized;
         public bool IsLocalized => Localized != null;
 
-        [InjectUsageContext, SerializeField]
+        [SerializeField]
         protected UsageContext UsageContext;
 
         public TValue Resolve(LocalizationLocale locale)

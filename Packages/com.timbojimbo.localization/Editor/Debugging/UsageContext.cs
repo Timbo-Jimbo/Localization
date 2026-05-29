@@ -12,27 +12,10 @@ namespace TimboJimboEditor.Localization.Debugging
 {
     internal static class UsageContextInjector
     {
-        private static readonly List<string> ContextFieldNames = new();
         private static readonly string[] TargetExtensions = { ".prefab", ".asset" };
         private static bool _isInjecting;
 
         public static bool IsInjecting => _isInjecting;
-
-        static UsageContextInjector()
-        {
-            RebuildContextFieldCache();
-        }
-
-        public static void RebuildContextFieldCache()
-        {
-            ContextFieldNames.Clear();
-
-            foreach (FieldInfo field in TypeCache.GetFieldsWithAttribute<InjectUsageContextAttribute>())
-            {
-                if (field.FieldType == typeof(UsageContext) && !ContextFieldNames.Contains(field.Name))
-                    ContextFieldNames.Add(field.Name);
-            }
-        }
 
         public static void Inject(string path)
         {
@@ -81,7 +64,7 @@ namespace TimboJimboEditor.Localization.Debugging
             GameObject prefabRoot = PrefabUtility.LoadPrefabContents(path);
             try
             {
-                if (InjectObjectTree(prefabRoot, path))
+                if (InjectObjectTree(prefabRoot))
                     PrefabUtility.SaveAsPrefabAsset(prefabRoot, path);
             }
             finally
@@ -133,7 +116,7 @@ namespace TimboJimboEditor.Localization.Debugging
             _isInjecting = true;
             try
             {
-                InjectObjectTree(prefabStage.prefabContentsRoot, prefabStage.assetPath);
+                InjectObjectTree(prefabStage.prefabContentsRoot);
             }
             finally
             {
@@ -141,40 +124,31 @@ namespace TimboJimboEditor.Localization.Debugging
             }
         }
 
-        public static bool InjectObjectTree(UnityEngine.Object target, string sourcePathOverride = null)
+        public static bool InjectObjectTree(UnityEngine.Object target)
         {
             if (target == null) return false;
 
             if (target is GameObject gameObject)
             {
-                bool changed = Inject(gameObject, sourcePathOverride);
+                bool changed = Inject(gameObject);
                 Component[] components = gameObject.GetComponentsInChildren<Component>(true);
                 for (int i = 0; i < components.Length; i++)
-                    changed |= Inject(components[i], sourcePathOverride);
+                    changed |= Inject(components[i]);
 
                 return changed;
             }
 
-            return Inject(target, sourcePathOverride);
+            return Inject(target);
         }
 
-        public static bool Inject(UnityEngine.Object target, string sourcePathOverride = null)
+        public static bool Inject(UnityEngine.Object target)
         {
-            if (target == null || ContextFieldNames.Count == 0) return false;
+            if (target == null) return false;
 
             var serializedObject = new SerializedObject(target);
             serializedObject.UpdateIfRequiredOrScript();
 
             bool changed = false;
-
-            for (int i = 0; i < ContextFieldNames.Count; i++)
-            {
-                SerializedProperty rootContextProperty = serializedObject.FindProperty(ContextFieldNames[i]);
-                if (rootContextProperty == null) continue;
-
-                changed |= WriteContext(target, target.GetType().Name, rootContextProperty, sourcePathOverride);
-            }
-
             SerializedProperty iterator = serializedObject.GetIterator();
             bool enterChildren = true;
 
@@ -182,16 +156,10 @@ namespace TimboJimboEditor.Localization.Debugging
             {
                 enterChildren = true;
 
-                if (iterator.propertyType != SerializedPropertyType.Generic && iterator.propertyType != SerializedPropertyType.ManagedReference)
+                if (!IsUsageContextProperty(iterator))
                     continue;
 
-                for (int i = 0; i < ContextFieldNames.Count; i++)
-                {
-                    SerializedProperty contextProperty = iterator.FindPropertyRelative(ContextFieldNames[i]);
-                    if (contextProperty == null) continue;
-
-                    changed |= WriteContext(target, iterator.propertyPath, contextProperty, sourcePathOverride);
-                }
+                changed |= WriteContext(target, iterator);
             }
 
             if (changed)
@@ -203,66 +171,18 @@ namespace TimboJimboEditor.Localization.Debugging
             return changed;
         }
 
-        private static bool WriteContext(UnityEngine.Object owner, string propertyPath, SerializedProperty contextProperty, string sourcePathOverride)
+        private static bool IsUsageContextProperty(SerializedProperty property)
         {
-            bool changed = false;
-            string sourcePath = string.IsNullOrEmpty(sourcePathOverride) ? AssetDatabase.GetAssetPath(owner) : sourcePathOverride;
-            string hierarchyPath = GetHierarchyPath(owner, string.IsNullOrEmpty(sourcePathOverride));
-
-            if (!string.IsNullOrEmpty(hierarchyPath))
-            {
-                sourcePath = ZString.Format("{0} > {1}", sourcePath, hierarchyPath);
-            }
-
-            changed |= SetObjectReference(contextProperty, nameof(UsageContext.Context), owner);
-            changed |= SetString(contextProperty, nameof(UsageContext.SourcePath), sourcePath);
-            changed |= SetString(contextProperty, nameof(UsageContext.PropertyPath), propertyPath);
-
-            return changed;
+            return property.propertyType == SerializedPropertyType.Generic && property.type == nameof(UsageContext);
         }
 
-        private static bool SetString(SerializedProperty parent, string relativePath, string value)
+        private static bool WriteContext(UnityEngine.Object owner, SerializedProperty contextProperty)
         {
-            SerializedProperty property = parent.FindPropertyRelative(relativePath);
-            if (property == null || property.stringValue == value) return false;
+            SerializedProperty property = contextProperty.FindPropertyRelative(nameof(UsageContext.Context));
+            if (property == null || property.objectReferenceValue == owner) return false;
 
-            property.stringValue = value;
+            property.objectReferenceValue = owner;
             return true;
-        }
-
-        private static bool SetObjectReference(SerializedProperty parent, string relativePath, UnityEngine.Object value)
-        {
-            SerializedProperty property = parent.FindPropertyRelative(relativePath);
-            if (property == null || property.objectReferenceValue == value) return false;
-
-            property.objectReferenceValue = value;
-            return true;
-        }
-
-        private static string GetHierarchyPath(UnityEngine.Object owner, bool includeSceneName)
-        {
-            if (owner is Component component)
-                return GetTransformPath(component.transform, includeSceneName);
-
-            if (owner is GameObject gameObject)
-                return GetTransformPath(gameObject.transform, includeSceneName);
-
-            return string.Empty;
-        }
-
-        private static string GetTransformPath(Transform transform, bool includeSceneName)
-        {
-            if (transform == null) return string.Empty;
-
-            string path = transform.name;
-            while (transform.parent != null)
-            {
-                transform = transform.parent;
-                path = transform.name + "/" + path;
-            }
-
-            Scene scene = transform.gameObject.scene;
-            return includeSceneName && scene.IsValid() && !string.IsNullOrEmpty(scene.name) ? scene.name + "/" + path : path;
         }
     }
 
@@ -315,8 +235,6 @@ namespace TimboJimboEditor.Localization.Debugging
             _flushQueued = false;
             if (PendingInjectPaths.Count == 0) return;
 
-            UsageContextInjector.RebuildContextFieldCache();
-
             string[] paths = new string[PendingInjectPaths.Count];
             PendingInjectPaths.CopyTo(paths);
             PendingInjectPaths.Clear();
@@ -344,7 +262,6 @@ namespace TimboJimboEditor.Localization.Debugging
 
         private static void OnSceneSaving(Scene scene, string path)
         {
-            UsageContextInjector.RebuildContextFieldCache();
             UsageContextInjector.InjectAllInScene(scene);
         }
 
@@ -363,8 +280,6 @@ namespace TimboJimboEditor.Localization.Debugging
 
             if (UsageContextInjector.IsInjecting || EditorApplication.isPlayingOrWillChangePlaymode)
                 return;
-
-            UsageContextInjector.RebuildContextFieldCache();
 
             PrefabStage prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
             if (prefabStage != null)

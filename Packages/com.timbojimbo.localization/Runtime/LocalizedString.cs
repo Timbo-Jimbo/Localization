@@ -131,7 +131,7 @@ namespace TimboJimbo.Localization
             //todo: replace with EditorAwareUtil.IsLiveInstance -> using DebugContextInfo.Context as target obj
             if (!Application.isPlaying) return;
 
-            UsageContext.LogWarning($"No localization found for locale \"{(locale != null ? locale.DisplayCode : null)}\". Returning empty string.");
+            LogWarning($"No localization found for locale \"{(locale != null ? locale.DisplayCode : null)}\". Returning empty string.");
         }
 
         private void LogFormatError(int paramCount, LocalizationLocale locale, Exception ex)
@@ -139,7 +139,7 @@ namespace TimboJimbo.Localization
             //todo: replace with EditorAwareUtil.IsLiveInstance -> using DebugContextInfo.Context as target obj
             if (!Application.isPlaying) return;
 
-            UsageContext.LogException(ex, $"Format error when resolving locale \"{(locale != null ? locale.DisplayCode : null)}\" with {paramCount} parameters");
+            LogException(ex, $"Format error when resolving locale \"{(locale != null ? locale.DisplayCode : null)}\" with {paramCount} parameters");
         }
     }
 }

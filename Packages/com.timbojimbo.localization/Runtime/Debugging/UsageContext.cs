@@ -8,8 +8,6 @@ namespace TimboJimbo.Localization.Debugging
     public struct UsageContext
     {
         public UnityEngine.Object Context;
-        public string SourcePath;
-        public string PropertyPath;
 
         [HideInCallstack]
         public void Log(string message)
@@ -37,18 +35,35 @@ namespace TimboJimbo.Localization.Debugging
 
         private string WithMetadata(string message)
         {
-            return ZString.Format("{0}\nDebug Context: {1}", message, ToString());
-        }
-        public override string ToString()
-        {
-            if (!string.IsNullOrEmpty(SourcePath))
-                return ZString.Join(".", SourcePath, PropertyPath);
+            var name = Context != null ? Context.name : "<Missing>";
+            var type = Context != null ? Context.GetType().Name : "<Missing>";
+            var path = string.Empty;
 
-            return PropertyPath;
+            {
+                var transform = default(Transform);
+                if (Context is GameObject go)
+                    transform = go.transform;
+                else if (Context is Component comp)
+                    transform = comp.transform;
+                
+                if (transform != null)
+                {
+                    //build path from hierarchy
+                    using var pathBuilder = ZString.CreateStringBuilder();
+                    while (transform != null)
+                    {
+                        pathBuilder.Insert(0, transform.name);
+                        transform = transform.parent;
+                        if (transform != null)
+                            pathBuilder.Insert(0, "/");
+                    }
+                    pathBuilder.Insert(0, " at ");
+                    path = pathBuilder.ToString();
+                }
+            }
+
+            return ZString.Format("{0}: {3}. (Context: '{1}'{2})", name, type, path, message);
         }
+
     }
-
-    [AttributeUsage(AttributeTargets.Field)]
-    internal sealed class InjectUsageContextAttribute : Attribute { }
-
 }

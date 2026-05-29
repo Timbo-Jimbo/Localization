@@ -9,8 +9,25 @@ namespace TimboJimbo.Localization
 {
     public abstract class LocalizedValue : ScriptableObject
     {
-        [InjectUsageContext, SerializeField]
-        protected UsageContext UsageContext;
+        protected void Log(string message)
+        {
+            Debug.Log($"{name} ({GetType().Name}): {message}", this);
+        }
+
+        protected void LogWarning(string message)
+        {
+            Debug.LogWarning($"{name} ({GetType().Name}): {message}", this);            
+        }
+
+        protected void LogError(string message)
+        {
+            Debug.LogError($"{name} ({GetType().Name}): {message}", this);
+        }
+
+        protected void LogException(Exception exception, string message = null)
+        {
+            Debug.LogException(new Exception($"{name} ({GetType().Name}): {message ?? exception.Message}", exception), this);
+        }
     }
 
     public abstract class LocalizedValue<T> : LocalizedValue, ILocalizedValueResolver<T>
@@ -27,7 +44,7 @@ namespace TimboJimbo.Localization
             {
                 //todo: replace with EditorAwareUtil.IsLiveInstance -> using DebugContextInfo.Context as target obj
                 if (Application.isPlaying)
-                    UsageContext.LogWarning($"No localization found for locale \"{(locale != null ? locale.DisplayCode : null)}\". Returning default value.");
+                    LogWarning($"No localization found for locale \"{(locale != null ? locale.DisplayCode : null)}\". Returning default value.");
 
                 return NonNullFallbackValue.ForType<T>();
             }
