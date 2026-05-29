@@ -1,3 +1,7 @@
+## [1.3.0] - 2026-05-29
+
+- Simplified usage context to fix recursive dirtying/saving
+
 ## [1.2.0] - 2026-05-26
 
 - Fixed Null Refs in TMPTextLocalizer
