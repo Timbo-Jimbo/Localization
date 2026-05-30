@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using TimboJimbo.Localization;
 using UnityEditor;
@@ -81,12 +82,6 @@ namespace TimboJimboEditor.Localization.Translations
             if (LocalizationSettings.DefaultLocale == null)
             {
                 disabledReason = "No default locale is configured.";
-                return false;
-            }
-
-            if (!HasSelectedLocalizedStrings(selectedTargets))
-            {
-                disabledReason = "No LocalizedString assets are selected.";
                 return false;
             }
 
@@ -316,49 +311,20 @@ namespace TimboJimboEditor.Localization.Translations
             }
         }
 
-        private static bool HasSelectedLocalizedStrings(UnityEngine.Object[] selectedTargets)
+        public static bool IsTranslating(UnityEngine.Object asset)
         {
-            if (selectedTargets == null)
+            if (asset == null || _activeJobs.Count == 0) return false;
+            int targetId = asset.GetInstanceID();
+            for (int i = 0; i < _activeJobs.Count; i++)
             {
-                return false;
+                if (_activeJobs[i].ContainsTarget(targetId)) return true;
             }
-
-            for (int i = 0; i < selectedTargets.Length; i++)
-            {
-                if (selectedTargets[i] is LocalizedString)
-                {
-                    return true;
-                }
-            }
-
             return false;
         }
 
         private static bool SelectionContainsBusyTarget(UnityEngine.Object[] selectedTargets)
         {
-            if (selectedTargets == null || _activeJobs.Count == 0)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < selectedTargets.Length; i++)
-            {
-                if (selectedTargets[i] is not LocalizedString localizedString || localizedString == null)
-                {
-                    continue;
-                }
-
-                int targetId = localizedString.GetInstanceID();
-                for (int jobIndex = 0; jobIndex < _activeJobs.Count; jobIndex++)
-                {
-                    if (_activeJobs[jobIndex].ContainsTarget(targetId))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return selectedTargets.Any(IsTranslating);
         }
 
         private static bool QueueContainsBusyTarget(List<TranslationQueueItem> translationQueue)

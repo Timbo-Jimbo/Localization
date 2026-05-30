@@ -551,7 +551,7 @@ namespace TimboJimboEditor.Localization
             return string.Compare(GetRowTitle(left), GetRowTitle(right), StringComparison.OrdinalIgnoreCase);
         }
 
-        private void SyncTargetsWithProjectLocales()
+        internal void SyncTargetsWithProjectLocales()
         {
             if (ProjectLocales.Length == 0) return;
 

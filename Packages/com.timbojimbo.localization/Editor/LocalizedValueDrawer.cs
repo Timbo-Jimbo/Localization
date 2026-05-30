@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using TimboJimbo.Localization;
+using TimboJimboEditor.Localization.Translations;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -24,11 +25,50 @@ namespace TimboJimboEditor.Localization
         {
             HandlePickerOpenClick(position, localizedAssetType, property);
 
+            bool isTranslating = !property.hasMultipleDifferentValues
+                && property.objectReferenceValue != null
+                && TranslationJobs.IsTranslating(property.objectReferenceValue);
+
             bool previousShowMixedValue = EditorGUI.showMixedValue;
             EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
             GUI.SetNextControlName(property.propertyPath);
+
+            Color prevColor = GUI.color;
+            
+            if (isTranslating)
+            {
+                float pulse = (Mathf.Sin((float)EditorApplication.timeSinceStartup * 4f) + 1f) * 0.5f;
+                float a = Mathf.Lerp(0.5f, 1f, pulse);
+                GUI.color = new Color(prevColor.r, prevColor.g, prevColor.b, prevColor.a * a);
+            }
+
             EditorGUI.PropertyField(position, property, label, true);
+            GUI.color = prevColor;
             EditorGUI.showMixedValue = previousShowMixedValue;
+
+            if (isTranslating)
+            {
+                DrawSpinner(position);
+                HandleUtility.Repaint();
+            }
+        }
+
+        private static void DrawSpinner(Rect fieldRect)
+        {
+            // Spinner icon to the left of the object-picker button, at 50% opacity.
+            float size = EditorGUIUtility.singleLineHeight;
+            Rect spinnerRect = new(
+                fieldRect.xMax - ObjectPickerButtonWidth - size - 2f,
+                fieldRect.y + (EditorGUIUtility.singleLineHeight - size) * 0.5f,
+                size,
+                size);
+
+            int frame = (int)(EditorApplication.timeSinceStartup * 10) % 12;
+            GUIContent icon = EditorGUIUtility.IconContent($"WaitSpin{frame:00}");
+            Color prevColor = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, 0.5f);
+            GUI.Label(spinnerRect, icon);
+            GUI.color = prevColor;
         }
 
         private static void HandlePickerOpenClick(Rect position, Type localizedAssetType, SerializedProperty property)
@@ -439,6 +479,16 @@ namespace TimboJimboEditor.Localization
 
             GUILayout.FlexibleSpace();
 
+            //translate toggle
+            if (_assetEditor != null && _assetType == typeof(LocalizedString) && AiTranslator.GetDefaultTranslator() != null)
+            {
+                Prefs.AutoTranslateOnCreate = EditorGUILayout.Toggle("Translate On Create", Prefs.AutoTranslateOnCreate);
+            }
+            else
+            {
+                Prefs.AutoTranslateOnCreate = false;
+            }
+
             EditorGUILayout.BeginHorizontal();
             bool canCreate = !string.IsNullOrWhiteSpace(_name) && !string.IsNullOrWhiteSpace(_folder);
             using (new EditorGUI.DisabledScope(!canCreate))
@@ -558,7 +608,18 @@ namespace TimboJimboEditor.Localization
 
             _saved = true;
             AssignToTargets(_asset);
+            
+            if(Prefs.AutoTranslateOnCreate)
+            {
+                // hacky, i dont like this part. I think i'd rather formalize when and how the 
+                // locale lists get synced, instead of just being as a side-effect of opening the editor
+                // for a localized value asset
+                _assetEditor.SyncTargetsWithProjectLocales();
+                TranslationJobs.TryStartJob(AiTranslator.GetDefaultTranslator(), new [] { _asset }, TranslationJobScope.All, null, out var _);
+            }
+
             Close();
+
         }
 
         private void AssignToTargets(UnityEngine.Object asset)
@@ -581,6 +642,15 @@ namespace TimboJimboEditor.Localization
                 if (!AssetDatabase.IsValidFolder(next))
                     AssetDatabase.CreateFolder(current, segments[i]);
                 current = next;
+            }
+        }
+
+        private static class Prefs
+        {
+            public static bool AutoTranslateOnCreate
+            {
+                get => EditorPrefs.GetBool($"{nameof(LocalizedAssetCreationWindow)}.{nameof(AutoTranslateOnCreate)}", false);
+                set => EditorPrefs.SetBool($"{nameof(LocalizedAssetCreationWindow)}.{nameof(AutoTranslateOnCreate)}", value);
             }
         }
     }
