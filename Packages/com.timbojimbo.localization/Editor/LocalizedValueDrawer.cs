@@ -132,18 +132,36 @@ namespace TimboJimboEditor.Localization
                 string[] guids = AssetDatabase.FindAssets($"t:{_assetType.Name}");
                 Array.Sort(guids, CompareAssetNames);
 
+                List<UnityEngine.Object> allAssets = new(guids.Length);
                 for (int i = 0; i < guids.Length; i++)
                 {
                     string path = AssetDatabase.GUIDToAssetPath(guids[i]);
                     UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath(path, _assetType);
                     if (asset == null) continue;
 
+                    allAssets.Add(asset);
                     AddItemToFolder(rootFolder, asset, path);
                 }
 
                 SortFolder(rootFolder);
                 LocalizedAssetFolder displayRootFolder = GetDisplayRootFolder(rootFolder);
                 AdvancedDropdownItem root = new(GetFolderDisplayName(displayRootFolder));
+
+
+                // Suggested matches based on target GameObject name
+                string targetName = GetTargetGameObjectName();
+                if (!string.IsNullOrEmpty(targetName))
+                {
+                    List<UnityEngine.Object> suggestions = FindFuzzyMatches(allAssets, targetName);
+                    if (suggestions.Count > 0)
+                    {
+                        for (int i = 0; i < suggestions.Count; i++)
+                            root.AddChild(new SuggestedLocalizedAssetDropdownItem(suggestions[i]));
+
+                        root.AddSeparator();
+
+                    }
+                }
 
                 root.AddChild(new CreateNewDropdownItem($"Create New..."));
                 root.AddSeparator();
@@ -155,6 +173,150 @@ namespace TimboJimboEditor.Localization
 
 
                 return root;
+            }
+
+            private string GetTargetGameObjectName()
+            {
+                if (_writeTargetProperty == null) return null;
+
+                var targets = _writeTargetProperty.serializedObject?.targetObjects;
+                if (targets == null || targets.Length != 1) return null;
+
+                if (targets[0] is GameObject go) return go.name;
+                if (targets[0] is Component comp) return comp.gameObject.name;
+                return null;
+            }
+
+            private static List<UnityEngine.Object> FindFuzzyMatches(List<UnityEngine.Object> assets, string targetName)
+            {
+                List<(UnityEngine.Object asset, int score)> scored = new();
+                string targetLower = targetName.ToLowerInvariant();
+                string[] targetTokens = TokenizeName(targetLower);
+
+                for (int i = 0; i < assets.Count; i++)
+                {
+                    string assetLower = assets[i].name.ToLowerInvariant();
+                    int score = FuzzyScore(assetLower, targetLower, targetTokens);
+                    if (score > 0)
+                        scored.Add((assets[i], score));
+                }
+
+                scored.Sort((a, b) => b.score.CompareTo(a.score));
+
+                const int maxSuggestions = 5;
+                List<UnityEngine.Object> results = new(Math.Min(scored.Count, maxSuggestions));
+                for (int i = 0; i < scored.Count && i < maxSuggestions; i++)
+                    results.Add(scored[i].asset);
+
+                return results;
+            }
+
+            private static int FuzzyScore(string assetName, string targetName, string[] targetTokens)
+            {
+                int score = 0;
+
+                // Exact match
+                if (assetName == targetName) return 1000;
+
+                // Full-name Levenshtein (normalized to 0–100)
+                int fullDist = LevenshteinDistance(assetName, targetName);
+                int maxLen = Math.Max(assetName.Length, targetName.Length);
+                if (maxLen > 0)
+                {
+                    float fullSimilarity = 1f - (float)fullDist / maxLen;
+                    if (fullSimilarity >= 0.5f)
+                        score += (int)(fullSimilarity * 100f);
+                }
+
+                // Contains full name
+                if (assetName.Contains(targetName) || targetName.Contains(assetName))
+                    score += 100;
+
+                // Token matching with Levenshtein
+                string[] assetTokens = TokenizeName(assetName);
+                for (int i = 0; i < targetTokens.Length; i++)
+                {
+                    int bestTokenScore = 0;
+                    for (int j = 0; j < assetTokens.Length; j++)
+                    {
+                        int tokenScore = 0;
+                        if (assetTokens[j] == targetTokens[i])
+                        {
+                            tokenScore = 20;
+                        }
+                        else if (assetTokens[j].Contains(targetTokens[i]) || targetTokens[i].Contains(assetTokens[j]))
+                        {
+                            tokenScore = 10;
+                        }
+
+                        // Levenshtein between tokens (up to 15 bonus points)
+                        int tokenMaxLen = Math.Max(assetTokens[j].Length, targetTokens[i].Length);
+                        if (tokenMaxLen > 0)
+                        {
+                            int dist = LevenshteinDistance(assetTokens[j], targetTokens[i]);
+                            float similarity = 1f - (float)dist / tokenMaxLen;
+                            if (similarity >= 0.4f)
+                                tokenScore = Math.Max(tokenScore, (int)(similarity * 15f));
+                        }
+
+                        bestTokenScore = Math.Max(bestTokenScore, tokenScore);
+                    }
+                    score += bestTokenScore;
+                }
+
+                return score;
+            }
+
+            private static int LevenshteinDistance(string a, string b)
+            {
+                if (string.IsNullOrEmpty(a)) return b?.Length ?? 0;
+                if (string.IsNullOrEmpty(b)) return a.Length;
+
+                int[] prev = new int[b.Length + 1];
+                int[] curr = new int[b.Length + 1];
+
+                for (int j = 0; j <= b.Length; j++)
+                    prev[j] = j;
+
+                for (int i = 1; i <= a.Length; i++)
+                {
+                    curr[0] = i;
+                    for (int j = 1; j <= b.Length; j++)
+                    {
+                        int cost = a[i - 1] == b[j - 1] ? 0 : 1;
+                        curr[j] = Math.Min(
+                            Math.Min(curr[j - 1] + 1, prev[j] + 1),
+                            prev[j - 1] + cost);
+                    }
+
+                    int[] tmp = prev;
+                    prev = curr;
+                    curr = tmp;
+                }
+
+                return prev[b.Length];
+            }
+
+            private static string[] TokenizeName(string name)
+            {
+                // Split on spaces, underscores, hyphens, and camelCase boundaries
+                var tokens = new List<string>();
+                int start = 0;
+                for (int i = 1; i <= name.Length; i++)
+                {
+                    bool isBoundary = i == name.Length
+                        || name[i] == ' ' || name[i] == '_' || name[i] == '-'
+                        || (char.IsUpper(name[i]) && i > 0 && char.IsLower(name[i - 1]));
+
+                    if (isBoundary)
+                    {
+                        string token = name.Substring(start, i - start).Trim(' ', '_', '-');
+                        if (token.Length > 0)
+                            tokens.Add(token);
+                        start = i;
+                    }
+                }
+                return tokens.ToArray();
             }
 
             protected override void ItemSelected(AdvancedDropdownItem item)
@@ -262,10 +424,18 @@ namespace TimboJimboEditor.Localization
             private static string GetAssetName(string path) => System.IO.Path.GetFileNameWithoutExtension(path);
         }
 
-        private sealed class LocalizedAssetDropdownItem : AdvancedDropdownItem
+        private  class LocalizedAssetDropdownItem : AdvancedDropdownItem
         {
             public readonly UnityEngine.Object Asset;
-            public LocalizedAssetDropdownItem(UnityEngine.Object asset) : base(asset.name) { Asset = asset; }
+            public LocalizedAssetDropdownItem(UnityEngine.Object asset, string label = null) : base(label ?? asset.name) { Asset = asset; }
+        }
+
+        private class SuggestedLocalizedAssetDropdownItem : LocalizedAssetDropdownItem
+        {
+            public SuggestedLocalizedAssetDropdownItem(UnityEngine.Object asset) : base(asset, "Suggested: " + asset.name)
+            { 
+                icon = EditorGUIUtility.IconContent("Favorite_colored").image as Texture2D;
+            }
         }
 
         private sealed class CreateNewDropdownItem : AdvancedDropdownItem
