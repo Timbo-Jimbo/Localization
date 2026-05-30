@@ -42,7 +42,8 @@ namespace TimboJimbo.Localization.Applicators
 
         protected virtual void OnValidate()
         {
-            Apply();
+            if(gameObject.activeInHierarchy && enabled)
+                Apply();
         }
 
         protected abstract void ApplyTextToTarget(string text);
