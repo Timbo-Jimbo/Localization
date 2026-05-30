@@ -104,12 +104,15 @@ namespace TimboJimboEditor.Localization
                 SortFolder(rootFolder);
                 LocalizedAssetFolder displayRootFolder = GetDisplayRootFolder(rootFolder);
                 AdvancedDropdownItem root = new(GetFolderDisplayName(displayRootFolder));
+
+                root.AddChild(new CreateNewDropdownItem($"Create New..."));
+                root.AddSeparator();
+
                 AddFolderChildren(root, displayRootFolder);
 
                 if (displayRootFolder.Items.Count == 0 && displayRootFolder.Children.Count == 0)
                     root.AddChild(new AdvancedDropdownItem($"No {_assetType.Name} assets found"));
 
-                root.AddChild(new CreateNewDropdownItem($"New..."));
 
                 return root;
             }
@@ -227,7 +230,10 @@ namespace TimboJimboEditor.Localization
 
         private sealed class CreateNewDropdownItem : AdvancedDropdownItem
         {
-            public CreateNewDropdownItem(string label) : base(label) { }
+            public CreateNewDropdownItem(string label) : base(label)
+            {
+                icon = EditorGUIUtility.IconContent("Toolbar Plus").image as Texture2D;
+            }
         }
 
         private sealed class LocalizedAssetFolder
