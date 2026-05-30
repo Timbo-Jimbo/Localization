@@ -22,11 +22,15 @@ namespace TimboJimbo.Localization
         public static LocalizationLocale DefaultLocale => ActiveInstance != null ? ActiveInstance._defaultLocale : null;
         public static LocalizationLocale ActiveLocale => _active != null ? _active : DefaultLocale;
         private static LocalizationLocale _active;
+        private static string ActiveLocalePrefKey => $"{nameof(LocalizationSettings)}.{nameof(ActiveLocale)}";
 
         public static void SetActiveLocale(LocalizationLocale locale)
         {
             if (_active == locale) return;
             _active = locale;
+
+            PlayerPrefs.SetString(ActiveLocalePrefKey, _active?.DisplayCode);
+            PlayerPrefs.Save();
 
             OnActiveLocaleChanged?.Invoke(ActiveLocale);
 
@@ -238,6 +242,28 @@ namespace TimboJimbo.Localization
         private void OnEnable()
         {
             ActiveInstance = this;
+            var savedLocaleCode = PlayerPrefs.GetString(ActiveLocalePrefKey, null);
+            var localeLoaded = false;
+            
+            if (!string.IsNullOrEmpty(savedLocaleCode))
+            {
+                var savedLocale = _locales.Find(l => string.Equals(l.DisplayCode, savedLocaleCode, StringComparison.OrdinalIgnoreCase));
+                if (savedLocale != null)
+                {
+                    SetActiveLocale(savedLocale);
+                    localeLoaded = true;
+                }
+            }
+
+            if (!localeLoaded)
+            {
+                var bestMatch = GetBestMatchForDeviceLocale(_locales);
+                if (bestMatch != null)
+                {
+                    SetActiveLocale(bestMatch);
+                    localeLoaded = true;
+                }
+            }
         }
     }
 }
