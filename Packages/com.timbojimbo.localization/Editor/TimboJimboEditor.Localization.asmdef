@@ -3,6 +3,8 @@
     "rootNamespace": "",
     "references": [
         "TimboJimbo.Localization.Runtime",
+        "Unity.TextMeshPro",
+        "LightSide.UniText",
         "ZString"
     ],
     "includePlatforms": [
@@ -14,6 +16,17 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "media.lightside.unitext",
+            "expression": "1.0.0",
+            "define": "TJ_LOCALIZATION_UNITEXT_SUPPORT"
+        },
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.0.0",
+            "define": "TJ_LOCALIZATION_TMP_SUPPORT"
+        }
+    ],
     "noEngineReferences": false
 }

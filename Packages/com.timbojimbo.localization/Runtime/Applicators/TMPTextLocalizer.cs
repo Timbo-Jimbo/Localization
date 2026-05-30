@@ -1,8 +1,9 @@
+#if TJ_LOCALIZATION_TMP_SUPPORT
 using System;
 using TMPro;
 using UnityEngine;
 
-namespace TimboJimbo.Localization.Appicators
+namespace TimboJimbo.Localization.Applicators
 {
     public class TMPTextLocalizer : TextLocalizer, ITextPreprocessor
     {
@@ -38,7 +39,6 @@ namespace TimboJimbo.Localization.Appicators
         {
             base.OnDisable();
             Unbind();
-
         }
 
         protected override void OnValidate()
@@ -58,6 +58,14 @@ namespace TimboJimbo.Localization.Appicators
         protected override void ApplyTextToTarget(string text)
         {
             _lastAppliedText = text;
+
+            if (_boundTarget != null)
+                _boundTarget.SetAllDirty();
+        }
+
+        protected override void ClearFromTarget()
+        {
+            _lastAppliedText = null;
 
             if (_boundTarget != null)
                 _boundTarget.SetAllDirty();
@@ -102,5 +110,11 @@ namespace TimboJimbo.Localization.Appicators
             }
             #endif
         }
+
+        private void Reset()
+        {
+            Target = GetComponent<TextMeshProUGUI>();
+        }
     }
 }
+#endif

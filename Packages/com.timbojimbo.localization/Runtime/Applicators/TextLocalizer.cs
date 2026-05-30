@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
-using TimboJimbo.Localization;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 
-namespace TimboJimbo.Localization.Appicators
+namespace TimboJimbo.Localization.Applicators
 {
     [ExecuteAlways]
-    public abstract class TextLocalizer : MonoBehaviour, ILocalizationChangeListener
+    public abstract class TextLocalizer : MonoBehaviour, ILocalizationChangeListener, ISerializationCallbackReceiver
     {
-        public LocalizableString LocalizableString = new();
+        public LocalizedString LocalizedString;
+
+        [FormerlySerializedAs("LocalizableString"), HideInInspector] 
+        [SerializeField] private LocalizableString _legacyLocalizableString = new();
+        
         [NonSerialized] private bool _hasApplied;
         [NonSerialized] private string _lastAppliedText;
         [CanBeNull] private FormattingResolver _formattingResolver;
@@ -42,10 +46,11 @@ namespace TimboJimbo.Localization.Appicators
         }
 
         protected abstract void ApplyTextToTarget(string text);
+        protected abstract void ClearFromTarget();
 
         public virtual void OnLocalizedValueChanged(LocalizedValue value)
         {
-            if (LocalizableString != null && LocalizableString.IsLocalized && LocalizableString.Localized == value)
+            if (LocalizedString != null && LocalizedString == value)
                 Apply();
         }
 
@@ -58,10 +63,15 @@ namespace TimboJimbo.Localization.Appicators
         {
             var activeLocale = LocalizationSettings.ActiveLocale;
 
-            if (LocalizableString == null || activeLocale == null)
+            if (LocalizedString == null || activeLocale == null)
+            {
+                ClearFromTarget();
+                _hasApplied = true;
+                _lastAppliedText = null;
                 return;
+            }
 
-            var resolvedText = _formattingResolver?.Resolve(LocalizableString, activeLocale) ?? LocalizableString.Resolve(activeLocale);
+            var resolvedText = _formattingResolver?.Resolve(LocalizedString, activeLocale) ?? LocalizedString.Resolve(activeLocale);
             _hasApplied = true;
 
             if (string.Equals(resolvedText, _lastAppliedText))
@@ -107,9 +117,23 @@ namespace TimboJimbo.Localization.Appicators
                 Apply();
         }
 
+        // todo, remove this legacy support in future major version
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
+            if (_legacyLocalizableString != null && _legacyLocalizableString.Localized != null)
+            {
+                LocalizedString = _legacyLocalizableString.Localized;
+                _legacyLocalizableString.Localized = null;
+            }
+        }
+
         private abstract class FormattingResolver
         {
-            public abstract string Resolve(LocalizableString localizableString, LocalizationLocale locale);
+            public abstract string Resolve(LocalizedString localizedString, LocalizationLocale locale);
             protected abstract void Release();
 
             public static bool Release(ref FormattingResolver resolver)
@@ -135,9 +159,9 @@ namespace TimboJimbo.Localization.Appicators
             );
 
             private T1 Param1;
-            public override string Resolve(LocalizableString localizableString, LocalizationLocale locale)
+            public override string Resolve(LocalizedString localizedString, LocalizationLocale locale)
             {
-                return localizableString.Resolve(locale, Param1);
+                return localizedString.Resolve(locale, Param1);
             }
 
             protected override void Release()
@@ -183,9 +207,9 @@ namespace TimboJimbo.Localization.Appicators
             private T1 Param1;
             private T2 Param2;
 
-            public override string Resolve(LocalizableString localizableString, LocalizationLocale locale)
+            public override string Resolve(LocalizedString localizedString, LocalizationLocale locale)
             {
-                return localizableString.Resolve(locale, Param1, Param2);
+                return localizedString.Resolve(locale, Param1, Param2);
             }
 
             protected override void Release()
@@ -236,9 +260,9 @@ namespace TimboJimbo.Localization.Appicators
             private T2 Param2;
             private T3 Param3;
 
-            public override string Resolve(LocalizableString localizableString, LocalizationLocale locale)
+            public override string Resolve(LocalizedString localizedString, LocalizationLocale locale)
             {
-                return localizableString.Resolve(locale, Param1, Param2, Param3);
+                return localizedString.Resolve(locale, Param1, Param2, Param3);
             }
 
             protected override void Release()
@@ -294,9 +318,9 @@ namespace TimboJimbo.Localization.Appicators
             private T3 Param3;
             private T4 Param4;
 
-            public override string Resolve(LocalizableString localizableString, LocalizationLocale locale)
+            public override string Resolve(LocalizedString localizedString, LocalizationLocale locale)
             {
-                return localizableString.Resolve(locale, Param1, Param2, Param3, Param4);
+                return localizedString.Resolve(locale, Param1, Param2, Param3, Param4);
             }
 
             protected override void Release()
@@ -357,9 +381,9 @@ namespace TimboJimbo.Localization.Appicators
             private T4 Param4;
             private T5 Param5;
 
-            public override string Resolve(LocalizableString localizableString, LocalizationLocale locale)
+            public override string Resolve(LocalizedString localizedString, LocalizationLocale locale)
             {
-                return localizableString.Resolve(locale, Param1, Param2, Param3, Param4, Param5);
+                return localizedString.Resolve(locale, Param1, Param2, Param3, Param4, Param5);
             }
 
             protected override void Release()

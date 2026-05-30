@@ -1,4 +1,4 @@
-namespace TimboJimbo.Localization.Appicators
+namespace TimboJimbo.Localization.Applicators
 {
     public class LegacyTextLocalizer : TextLocalizer
     {
@@ -8,6 +8,13 @@ namespace TimboJimbo.Localization.Appicators
         {
             if (Target != null)
                 Target.text = text;
+        }
+
+        protected override void ClearFromTarget() { }
+
+        private void Reset()
+        {
+            Target = GetComponent<UnityEngine.UI.Text>();
         }
     }
 }

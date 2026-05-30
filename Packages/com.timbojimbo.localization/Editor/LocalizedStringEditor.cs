@@ -4,6 +4,7 @@ using TimboJimboEditor.Localization.Translations;
 using TimboJimbo.Localization;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TimboJimboEditor.Localization
 {
@@ -183,6 +184,32 @@ namespace TimboJimboEditor.Localization
             }
 
             GUI.color = previousGuiColor;
+        }
+
+        public override bool TrySeedDefaultValueFromTarget(GameObject target, LocalizationLocale locale, SerializedProperty value)
+        {
+            if (target.TryGetComponent(out Text textComp))
+            {
+                value.stringValue = textComp.text;
+                return true;
+            }
+            
+#if TJ_LOCALIZATION_TMP_SUPPORT
+            if (target.TryGetComponent(out TMPro.TextMeshProUGUI tmpTextComp))
+            {
+                value.stringValue = tmpTextComp.text;
+                return true;
+            }
+#endif
+
+#if TJ_LOCALIZATION_UNITEXT_SUPPORT
+            if (target.TryGetComponent(out LightSide.UniText uniTextComp))
+            {
+                value.stringValue = uniTextComp.Text;
+                return true;
+            }
+#endif
+            return false;
         }
 
 

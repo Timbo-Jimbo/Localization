@@ -308,6 +308,11 @@ namespace TimboJimboEditor.Localization
             }
         }
 
+        public virtual bool TrySeedDefaultValueFromTarget(GameObject target, LocalizationLocale locale, SerializedProperty value)
+        {
+            return false;
+        }
+
         /// <summary>
         /// Returns true if the property holds a meaningful (non-default) value. Override for
         /// custom equality on non-trivial value types.

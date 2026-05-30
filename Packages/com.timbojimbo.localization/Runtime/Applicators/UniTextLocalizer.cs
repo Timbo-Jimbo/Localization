@@ -2,7 +2,7 @@
 
 using LightSide;
 
-namespace TimboJimbo.Localization.Appicators
+namespace TimboJimbo.Localization.Applicators
 {
     public class UniTextLocalizer : TextLocalizer
     {
@@ -12,6 +12,17 @@ namespace TimboJimbo.Localization.Appicators
         {
             if (Target != null)
                 Target.SetText(text);
+        }
+
+        protected override void ClearFromTarget()
+        {
+            if (Target != null)
+                Target.SetText(string.Empty);
+        }
+
+        private void Reset()
+        {
+            Target = GetComponent<UniText>();
         }
     }
 }

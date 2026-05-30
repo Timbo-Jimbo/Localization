@@ -16,8 +16,13 @@
     "versionDefines": [
         {
             "name": "media.lightside.unitext",
-            "expression": "2",
+            "expression": "1.0.0",
             "define": "TJ_LOCALIZATION_UNITEXT_SUPPORT"
+        },
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.0.0",
+            "define": "TJ_LOCALIZATION_TMP_SUPPORT"
         }
     ],
     "noEngineReferences": false

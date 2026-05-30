@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 namespace TimboJimbo.Localization
@@ -42,6 +43,158 @@ namespace TimboJimbo.Localization
         public static void ClearActiveLocale()
         {
             SetActiveLocale(null);
+        }
+
+        public static LocalizationLocale GetBestMatchForDeviceLocale(IReadOnlyList<LocalizationLocale> locales = null)
+        {
+            if (TryGetBestMatchForDeviceLocale(out var locale, locales))
+                return locale;
+
+            return DefaultLocale ?? (locales != null && locales.Count > 0 ? locales[0] : null) ?? (Locales.Count > 0 ? Locales[0] : null);
+        }
+
+        public static bool TryGetBestMatchForDeviceLocale(out LocalizationLocale locale, IReadOnlyList<LocalizationLocale> locales = null)
+        {
+            locale = null;
+            locales ??= Locales;
+
+            if (locales == null || locales.Count == 0)
+                return false;
+
+            var deviceCulture = CultureInfo.CurrentUICulture ?? CultureInfo.CurrentCulture;
+            var deviceLanguageCode = deviceCulture?.TwoLetterISOLanguageName?.ToLowerInvariant().Trim();
+            var deviceCountryCode = GetCountryCode(deviceCulture);
+
+            if (string.IsNullOrEmpty(deviceLanguageCode) && Application.systemLanguage != SystemLanguage.Unknown)
+            {
+                deviceLanguageCode = GetLanguageCodeFromSystemLanguage(Application.systemLanguage);
+            }
+
+            int bestScore = -1;
+            LocalizationLocale bestMatch = null;
+
+            foreach (var candidate in locales)
+            {
+                if (candidate == null)
+                    continue;
+
+                int score = GetDeviceLocaleMatchScore(candidate, deviceLanguageCode, deviceCountryCode);
+                if (score <= bestScore)
+                    continue;
+
+                bestScore = score;
+                bestMatch = candidate;
+
+                if (score == 4)
+                    break;
+            }
+
+            if (bestMatch != null)
+            {
+                locale = bestMatch;
+                return true;
+            }
+
+            if (DefaultLocale != null)
+            {
+                locale = DefaultLocale;
+                return true;
+            }
+
+            locale = locales.Count > 0 ? locales[0] : null;
+            return locale != null;
+        }
+
+        private static int GetDeviceLocaleMatchScore(LocalizationLocale candidate, string deviceLanguageCode, string deviceCountryCode)
+        {
+            const int perfectMatch = 4;
+            const int languageOnlyMatch = 2;
+            const int languageWithDefaultCountryMatch = 3;
+            const int defaultFallback = 1;
+
+            if (candidate == null)
+                return 0;
+
+            if (string.IsNullOrEmpty(deviceLanguageCode))
+                return candidate == DefaultLocale ? defaultFallback : 0;
+
+            if (!string.Equals(candidate.LanguageCode, deviceLanguageCode, StringComparison.OrdinalIgnoreCase))
+                return candidate == DefaultLocale ? defaultFallback : 0;
+
+            if (!string.IsNullOrEmpty(deviceCountryCode) && string.Equals(candidate.CountryCode, deviceCountryCode, StringComparison.OrdinalIgnoreCase))
+                return perfectMatch;
+
+            if (string.IsNullOrEmpty(candidate.CountryCode))
+                return languageWithDefaultCountryMatch;
+
+            return languageOnlyMatch;
+        }
+
+        private static string GetCountryCode(CultureInfo culture)
+        {
+            if (culture == null)
+                return string.Empty;
+
+            var name = culture.Name;
+            if (string.IsNullOrEmpty(name))
+                return string.Empty;
+
+            var separatorIndex = name.IndexOfAny(new[] { '-', '_' });
+            if (separatorIndex < 0 || separatorIndex >= name.Length - 1)
+                return string.Empty;
+
+            return name.Substring(separatorIndex + 1).ToUpperInvariant();
+        }
+
+        private static string GetLanguageCodeFromSystemLanguage(SystemLanguage systemLanguage)
+        {
+            return systemLanguage switch
+            {
+                SystemLanguage.Afrikaans => "af",
+                SystemLanguage.Arabic => "ar",
+                SystemLanguage.Basque => "eu",
+                SystemLanguage.Belarusian => "be",
+                SystemLanguage.Bulgarian => "bg",
+                SystemLanguage.Catalan => "ca",
+                SystemLanguage.Chinese => "zh",
+                SystemLanguage.Czech => "cs",
+                SystemLanguage.Danish => "da",
+                SystemLanguage.Dutch => "nl",
+                SystemLanguage.English => "en",
+                SystemLanguage.Estonian => "et",
+                SystemLanguage.Faroese => "fo",
+                SystemLanguage.Finnish => "fi",
+                SystemLanguage.French => "fr",
+                SystemLanguage.German => "de",
+                SystemLanguage.Greek => "el",
+                SystemLanguage.Hebrew => "he",
+                SystemLanguage.Hungarian => "hu",
+                SystemLanguage.Icelandic => "is",
+                SystemLanguage.Indonesian => "id",
+                SystemLanguage.Italian => "it",
+                SystemLanguage.Japanese => "ja",
+                SystemLanguage.Korean => "ko",
+                SystemLanguage.Latvian => "lv",
+                SystemLanguage.Lithuanian => "lt",
+                SystemLanguage.Norwegian => "no",
+                SystemLanguage.Polish => "pl",
+                SystemLanguage.Portuguese => "pt",
+                SystemLanguage.Romanian => "ro",
+                SystemLanguage.Russian => "ru",
+                SystemLanguage.SerboCroatian => "sr",
+                SystemLanguage.Slovak => "sk",
+                SystemLanguage.Slovenian => "sl",
+                SystemLanguage.Spanish => "es",
+                SystemLanguage.Swedish => "sv",
+                SystemLanguage.Thai => "th",
+                SystemLanguage.Turkish => "tr",
+                SystemLanguage.Ukrainian => "uk",
+                SystemLanguage.Vietnamese => "vi",
+                SystemLanguage.ChineseSimplified => "zh",
+                SystemLanguage.ChineseTraditional => "zh",
+                SystemLanguage.Unknown => string.Empty,
+                _ => string.Empty,
+            };
         }
 
         public static void RaiseLocalizedValueChanged(LocalizedValue localizedString)
