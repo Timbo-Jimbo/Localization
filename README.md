@@ -1,7 +1,7 @@
 # Timbo Jimbo - Localization
 
 <div>
-<img src="https://github.com/Timbo-Jimbo/Localization/blob/main/Packages/com.timbojimbo.localization/Documentation~/Translate.gif?raw=true" align="right" width="40%" />
+<img src="https://github.com/Timbo-Jimbo/Localization/blob/main/com.timbojimbo.localization/Documentation~/Translate.gif?raw=true" align="right" width="40%" padding="10px">
 	
 A simple localization package for Unity with a built in AI Translation tool.
 

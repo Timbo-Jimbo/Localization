@@ -1,3 +1,7 @@
+## [1.6.0] - 2026-05-31
+
+- Updated repo layout so that the repository is just a package and not a Unity Project + Package combo.
+
 ## [1.5.0] - 2026-05-31
 
 - Added `ImageLocalizer`
