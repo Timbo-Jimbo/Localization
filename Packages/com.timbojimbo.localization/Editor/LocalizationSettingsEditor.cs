@@ -420,36 +420,46 @@ namespace TimboJimboEditor.Localization
             {
                 var root = new AdvancedDropdownItem("Add Locale");
 
-                var emptyItem = new CultureDropdownItem("Empty Locale", null);
-                root.AddChild(emptyItem);
-                root.AddSeparator();
-
-                // Group cultures by parent language so the dropdown is browsable as a tree.
+                var regionalVariantsGroup = new AdvancedDropdownItem("Regional Variants");
                 var groups = new Dictionary<string, AdvancedDropdownItem>(StringComparer.OrdinalIgnoreCase);
+                
 
                 var cultures = CultureCache.AllCultures;
                 for (int i = 0; i < cultures.Count; i++)
                 {
                     CultureInfo culture = cultures[i];
-                    string parentName = culture.Parent != null && !string.IsNullOrEmpty(culture.Parent.EnglishName)
-                        ? culture.Parent.EnglishName
-                        : "Other";
 
-                    if (!groups.TryGetValue(parentName, out AdvancedDropdownItem groupItem))
-                    {
-                        groupItem = new AdvancedDropdownItem(parentName);
-                        groups.Add(parentName, groupItem);
-                        root.AddChild(groupItem);
-                    }
-
-                    string label = $"{culture.EnglishName}  ({culture.Name})";
+                    var isInvariant = culture.Parent == CultureInfo.InvariantCulture;
+                    var label = $"{culture.EnglishName}  ({culture.Name})";
                     var item = new CultureDropdownItem(label, culture)
                     {
                         enabled = !_existingCodes.Contains(culture.Name),
                     };
-                    groupItem.AddChild(item);
+
+                    if(isInvariant)
+                    {
+                        root.AddChild(item);
+                    }
+                    else
+                    {
+                        string parentName = culture.Parent != null && !string.IsNullOrEmpty(culture.Parent.EnglishName)
+                            ? culture.Parent.EnglishName
+                            : "Other";
+
+                        if (!groups.TryGetValue(parentName, out AdvancedDropdownItem groupItem))
+                        {
+                            groupItem = new AdvancedDropdownItem(parentName);
+                            groups.Add(parentName, groupItem);
+                            regionalVariantsGroup.AddChild(groupItem);
+                        }
+
+                        groupItem.AddChild(item);
+                    }
                 }
 
+                root.AddSeparator();
+                root.AddChild(regionalVariantsGroup);
+                
                 return root;
             }
 
