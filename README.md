@@ -1,9 +1,10 @@
 # Timbo Jimbo - Localization
 
-A simple localization package for Unity with a built in AI Translation tool.
 <div>
 <img src="https://github.com/Timbo-Jimbo/Localization/blob/main/Packages/com.timbojimbo.localization/Documentation~/Translate.gif?raw=true" align="right" width="40%" />
-  
+	
+A simple localization package for Unity with a built in AI Translation tool.
+
 ✨ **Easy to Use**
 
 Built around lightweight `ScriptableObject` assets and a clean runtime API. No databases, no complex pipelines.
