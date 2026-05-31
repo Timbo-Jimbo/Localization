@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62acb3805a8830446b2f71c4455c9958, type: 3}
   m_Name: GPT5.5
   m_EditorClassIdentifier: Assembly-CSharp-Editor::AiTranslator
-  _glossaries:
-  - {fileID: 11400000, guid: b37446ba09e3e1541b9b2b1baf94f991, type: 2}
+  _glossaries: []
   _contextBlocks:
   - _title: Freedom to rephrase
     _body: "You are free to reword and rework the source text as much as you want.
