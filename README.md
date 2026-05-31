@@ -1,5 +1,8 @@
 # Timbo Jimbo - Localization
 
+<div>
+<img src="https://github.com/Timbo-Jimbo/Localization/blob/main/Packages/com.timbojimbo.localization/Documentation~/Translate.gif?raw=true" align="right" width="40%" />
+	
 A simple localization package for Unity with a built in AI Translation tool.
 
 ✨ **Easy to Use**
@@ -28,6 +31,7 @@ Includes built-in support for:
 - TextMeshPro
 - Legacy Unity UI Text
 - UniText integration
+</div>
 
 # Installation
 
