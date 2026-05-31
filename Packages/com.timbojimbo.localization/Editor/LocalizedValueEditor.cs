@@ -37,13 +37,13 @@ namespace TimboJimboEditor.Localization
         {
         }
 
-        protected virtual Stats GetStats()
+        protected Stats GetStats()
         {
             Stats stats = default;
-            if (ValuesProperty == null) return stats;
+            if (target is not LocalizedValue localizedValue) return stats;
 
-            stats.TotalRows = ValuesProperty.arraySize;
-            stats.LocalisedCount = CountLocalised();
+            stats.TotalRows = LocalizationSettings.Locales.Count;
+            stats.LocalisedCount = LocalizationSettings.Locales.Count(localizedValue.HasMeaningfulValueForLocale);
             stats.MissingCount = Mathf.Max(0, stats.TotalRows - stats.LocalisedCount);
             return stats;
         }
@@ -232,7 +232,7 @@ namespace TimboJimboEditor.Localization
             
             GUILayout.FlexibleSpace();
 
-            if (!HasMeaningfulValue(valueProperty) && !valueProperty.hasMultipleDifferentValues)
+            if (!valueProperty.hasMultipleDifferentValues && target is LocalizedValue localizedValue && !localizedValue.HasMeaningfulValueForLocale(locale))
                 GUILayout.Label("Missing", LocalizationEditorGUI.MissingTagStyle, GUILayout.Width(TagWidth));
             else
                 GUILayout.Space(TagWidth);
@@ -302,25 +302,6 @@ namespace TimboJimboEditor.Localization
         public virtual bool TrySeedDefaultValueFromTarget(GameObject target, LocalizationLocale locale, SerializedProperty value)
         {
             return false;
-        }
-
-        /// <summary>
-        /// Returns true if the property holds a meaningful (non-default) value. Override for
-        /// custom equality on non-trivial value types.
-        /// </summary>
-        protected virtual bool HasMeaningfulValue(SerializedProperty valueProperty)
-        {
-            if (valueProperty == null) return false;
-
-            switch (valueProperty.propertyType)
-            {
-                case SerializedPropertyType.String:
-                    return !string.IsNullOrWhiteSpace(valueProperty.stringValue);
-                case SerializedPropertyType.ObjectReference:
-                    return valueProperty.objectReferenceValue != null;
-                default:
-                    return true;
-            }
         }
 
         // ---------------------------------------------------------------------
@@ -449,22 +430,6 @@ namespace TimboJimboEditor.Localization
             }
 
             return -1;
-        }
-
-        private int CountLocalised()
-        {
-            int count = 0;
-            for (int i = 0; i < ValuesProperty.arraySize; i++)
-            {
-                SerializedProperty elementProperty = ValuesProperty.GetArrayElementAtIndex(i);
-                SerializedProperty localeProperty = elementProperty.FindPropertyRelative(LocalePropertyName);
-                SerializedProperty valueProperty = elementProperty.FindPropertyRelative(ValuePropertyName);
-
-                if (localeProperty == null || localeProperty.objectReferenceValue == null) continue;
-                if (HasMeaningfulValue(valueProperty)) count++;
-            }
-
-            return count;
         }
 
         private bool IsDuplicateLocale(UnityEngine.Object locale)

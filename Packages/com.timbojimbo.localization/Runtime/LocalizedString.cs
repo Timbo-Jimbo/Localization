@@ -17,9 +17,14 @@ namespace TimboJimbo.Localization
     [CreateAssetMenu(fileName = "New Localized String", menuName = "Localization/Localized String")]
     public class LocalizedString : LocalizedValue<string>, ILocalizedStringResolver
     {
+        protected override bool IsMeaningfulValue(string value)
+        {
+            return !string.IsNullOrWhiteSpace(value);
+        }
+
         public string Resolve<T1>(LocalizationLocale locale, T1 param1)
         {
-            if (!LocaleValuePair.TryFindBestMatch(Values, locale, out var bestMatch))
+            if (!TryFindBestMatchValue(locale, out var bestMatch))
             {
                 LogLocalizationMissingWarn(locale);
                 return NonNullFallbackValue.ForType<string>();
@@ -40,7 +45,7 @@ namespace TimboJimbo.Localization
 
         public string Resolve<T1, T2>(LocalizationLocale locale, T1 param1, T2 param2)
         {
-            if (!LocaleValuePair.TryFindBestMatch(Values, locale, out var bestMatch))
+            if (!TryFindBestMatchValue(locale, out var bestMatch))
             {
                 LogLocalizationMissingWarn(locale);
                 return NonNullFallbackValue.ForType<string>();
@@ -62,7 +67,7 @@ namespace TimboJimbo.Localization
 
         public string Resolve<T1, T2, T3>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3)
         {
-            if (!LocaleValuePair.TryFindBestMatch(Values, locale, out var bestMatch))
+            if (!TryFindBestMatchValue(locale, out var bestMatch))
             {
                 LogLocalizationMissingWarn(locale);
                 return NonNullFallbackValue.ForType<string>();
@@ -84,7 +89,7 @@ namespace TimboJimbo.Localization
 
         public string Resolve<T1, T2, T3, T4>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3, T4 param4)
         {
-            if (!LocaleValuePair.TryFindBestMatch(Values, locale, out var bestMatch))
+            if (!TryFindBestMatchValue(locale, out var bestMatch))
             {
                 LogLocalizationMissingWarn(locale);
                 return NonNullFallbackValue.ForType<string>();
@@ -106,7 +111,7 @@ namespace TimboJimbo.Localization
 
         public string Resolve<T1, T2, T3, T4, T5>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5)
         {
-            if (!LocaleValuePair.TryFindBestMatch(Values, locale, out var bestMatch))
+            if (!TryFindBestMatchValue(locale, out var bestMatch))
             {
                 LogLocalizationMissingWarn(locale);
                 return NonNullFallbackValue.ForType<string>();

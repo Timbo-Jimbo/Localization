@@ -8,12 +8,6 @@ using UnityEngine;
 
 namespace TimboJimboEditor.Localization.Translations
 {
-    public enum TranslationJobScope
-    {
-        Missing,
-        All,
-        SingleLocale,
-    }
 
     [InitializeOnLoad]
     public static class TranslationJobs
@@ -370,17 +364,14 @@ namespace TimboJimboEditor.Localization.Translations
                 }
 
                 int targetId = localizedString.GetInstanceID();
+                
                 if (!seenTargetIds.Add(targetId))
-                {
                     continue;
-                }
 
-                if (!TryGetLocaleValue(localizedString, defaultLocale, out string sourceText) || string.IsNullOrWhiteSpace(sourceText))
-                {
+                if (!localizedString.HasMeaningfulValueForLocale(defaultLocale))
                     continue;
-                }
 
-                List<LocalizationLocale> targetLocales = BuildTargetLocaleList(localizedString, defaultLocale, scope, singleTargetLocale);
+                List<LocalizationLocale> targetLocales = BuildTargetLocaleList(localizedString, defaultLocale, scope);
                 if (targetLocales.Count == 0)
                 {
                     continue;
@@ -406,18 +397,14 @@ namespace TimboJimboEditor.Localization.Translations
         private static List<LocalizationLocale> BuildTargetLocaleList(
             LocalizedString localizedString,
             LocalizationLocale defaultLocale,
-            TranslationJobScope scope,
-            LocalizationLocale singleTargetLocale)
+            TranslationJobScope scope
+        )
         {
             var targetLocales = new List<LocalizationLocale>();
 
-            if (scope == TranslationJobScope.SingleLocale)
+            if (scope is SingleLocale singleLocaleScope)
             {
-                if (singleTargetLocale != null && singleTargetLocale != defaultLocale)
-                {
-                    targetLocales.Add(singleTargetLocale);
-                }
-
+                targetLocales.Add(singleLocaleScope.TargetLocale);
                 return targetLocales;
             }
 
@@ -426,45 +413,17 @@ namespace TimboJimboEditor.Localization.Translations
             for (int i = 0; i < projectLocales.Count; i++)
             {
                 LocalizationLocale locale = projectLocales[i];
+                
                 if (locale == null || locale == defaultLocale || !seenLocales.Add(locale))
-                {
                     continue;
-                }
 
-                if (scope == TranslationJobScope.Missing
-                    && TryGetLocaleValue(localizedString, locale, out string existingValue)
-                    && !string.IsNullOrWhiteSpace(existingValue))
-                {
+                if (scope == TranslationJobScope.Missing && localizedString.HasMeaningfulValueForLocale(locale))
                     continue;
-                }
 
                 targetLocales.Add(locale);
             }
 
             return targetLocales;
-        }
-
-        private static bool TryGetLocaleValue(LocalizedString localizedString, LocalizationLocale locale, out string value)
-        {
-            value = null;
-            if (localizedString == null || locale == null || localizedString.Values == null)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < localizedString.Values.Count; i++)
-            {
-                LocaleValuePair<string> pair = localizedString.Values[i];
-                if (pair == null || pair.Locale != locale)
-                {
-                    continue;
-                }
-
-                value = pair.Value;
-                return true;
-            }
-
-            return false;
         }
 
         private static void ApplyTranslatedValue(LocalizedString localizedString, LocalizationLocale locale, string value)
@@ -889,4 +848,30 @@ namespace TimboJimboEditor.Localization.Translations
             public int TargetId { get; }
         }
     }
+    
+    public abstract class TranslationJobScope
+    {
+        public static TranslationJobScope Missing => new MissingLocales();
+        public static TranslationJobScope All => new AllLocales();
+        public static TranslationJobScope SingleLocale(LocalizationLocale targetLocale) => new SingleLocale(targetLocale);
+    }
+
+    public sealed class SingleLocale : TranslationJobScope
+    {
+        public LocalizationLocale TargetLocale { get; }
+
+        public SingleLocale(LocalizationLocale targetLocale)
+        {
+            TargetLocale = targetLocale;
+        }
+    }
+
+    public sealed class AllLocales : TranslationJobScope
+    {
+    }
+
+    public sealed class MissingLocales : TranslationJobScope
+    {
+    }
+
 }

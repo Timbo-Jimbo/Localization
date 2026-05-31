@@ -9,6 +9,7 @@ namespace TimboJimbo.Localization
     public abstract class LocalizedValue : ScriptableObject
     {
         internal abstract void SyncWithProjectLocales();
+        public abstract bool HasMeaningfulValueForLocale(LocalizationLocale locale);
 
         protected virtual void OnEnable()
         {
@@ -43,6 +44,7 @@ namespace TimboJimbo.Localization
         public string Description;
 
         public List<LocaleValuePair<T>> Values = new();
+
         internal override void SyncWithProjectLocales()
         {
             if(LocalizationSettings.ActiveAsset == null) return;
@@ -57,7 +59,7 @@ namespace TimboJimbo.Localization
                 {
                     if(locale == null) continue;
 
-                    if (!LocaleValuePair.TryFind(Values, locale, out _))
+                    if (!TryFindValue(locale, out _))
                     {
                         Values.Add(new LocaleValuePair<T>()
                         {
@@ -74,7 +76,7 @@ namespace TimboJimbo.Localization
                     var locale = projectLocales[i];
                     if(locale == null) continue;
 
-                    if (LocaleValuePair.TryFind(Values, locale, out var pair))
+                    if (TryFindValue(locale, out var pair))
                     {
                         int currentIndex = Values.IndexOf(pair);
                         if(currentIndex != i)
@@ -95,9 +97,94 @@ namespace TimboJimbo.Localization
             }
         }
 
+        public bool TryFindValue(LocalizationLocale targetLocale, out LocaleValuePair<T> result)
+        {
+            result = default;
+
+            if (Values == null || Values.Count == 0) return false;
+
+            for (int i = 0; i < Values.Count; i++)
+            {
+                LocaleValuePair<T> pair = Values[i];
+
+                if (pair == null || pair.Locale == null) continue;
+
+                if (pair.Locale.Equals(targetLocale))
+                {
+                    result = pair;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
+        public bool TryFindBestMatchValue(LocalizationLocale targetLocale, out LocaleValuePair<T> result)
+        {
+            result = default;
+
+            if (Values == null || Values.Count == 0) return false;
+
+            var bestScore = -1;
+
+            for (int i = 0; i < Values.Count; i++)
+            {
+                LocaleValuePair<T> pair = Values[i];
+
+                if (pair == null || pair.Locale == null) continue;
+                const int perfectScore = 4;
+
+                int score;
+                if (pair.Locale.LanguageCode == targetLocale.LanguageCode && pair.Locale.CountryCode == targetLocale.CountryCode)
+                {
+                    score = perfectScore;
+                }
+                else if (pair.Locale.LanguageCode == targetLocale.LanguageCode && string.IsNullOrEmpty(pair.Locale.CountryCode))
+                {
+                    score = 3;
+                }
+                else if (pair.Locale.LanguageCode == targetLocale.LanguageCode)
+                {
+                    score = 2;
+                }
+                else if (pair.Locale == LocalizationSettings.DefaultLocale)
+                {
+                    score = 1;
+                }
+                else
+                {
+                    score = 0;
+                }
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    result = pair;
+
+                    if (score == perfectScore) break; // Perfect match, no need to continue searching
+                }
+            }
+
+            if (result == null)
+                return false;
+
+            var value = result.Value;
+
+            if (
+                value == null ||
+                value.Equals(default(T)) ||
+                value is string str && string.IsNullOrEmpty(str)
+            )
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public T Resolve(LocalizationLocale locale)
         {
-            if (!LocaleValuePair.TryFindBestMatch(Values, locale, out var bestMatch))
+            if (!TryFindBestMatchValue(locale, out var bestMatch))
             {
                 //todo: replace with EditorAwareUtil.IsLiveInstance -> using DebugContextInfo.Context as target obj
                 if (Application.isPlaying)
@@ -107,6 +194,23 @@ namespace TimboJimbo.Localization
             }
 
             return bestMatch.Value;
+        }
+
+        public override bool HasMeaningfulValueForLocale(LocalizationLocale locale)
+        {
+            if (!TryFindValue(locale, out var bestMatch))
+                return false;
+
+            return IsMeaningfulValue(bestMatch.Value);
+        }
+
+        protected virtual bool IsMeaningfulValue(T value)
+        {
+            if (value == null) return false;
+            if (value.Equals(default(T))) return false;
+            if (value is string str && string.IsNullOrEmpty(str)) return false;
+
+            return true;
         }
     }
 }

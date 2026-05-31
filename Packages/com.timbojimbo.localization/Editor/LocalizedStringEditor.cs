@@ -147,7 +147,7 @@ namespace TimboJimboEditor.Localization
         protected override void BuildLocaleMenu(GenericMenu menu, LocalizationLocale locale, SerializedProperty valueProperty)
         {
             string translateLabel = IsEditingMultipleObjects ? "Translate For Selection" : "Translate";
-            AddTranslationMenuItem(menu, translateLabel, TranslationJobScope.SingleLocale, locale);
+            AddTranslationMenuItem(menu, translateLabel, TranslationJobScope.SingleLocale(locale));
             menu.AddSeparator(string.Empty);
             base.BuildLocaleMenu(menu, locale, valueProperty);
         }
@@ -232,12 +232,12 @@ namespace TimboJimboEditor.Localization
         // Translation menu helpers
         // ---------------------------------------------------------------------
 
-        private void AddTranslationMenuItem(GenericMenu menu, string label, TranslationJobScope scope, LocalizationLocale singleTargetLocale)
+        private void AddTranslationMenuItem(GenericMenu menu, string label, TranslationJobScope scope)
         {
             List<AiTranslator> translators = TranslationJobs.FindAiTranslators();
             if (translators.Count == 0)
             {
-                menu.AddItem(new GUIContent(label), false, () => StartTranslationForSelectedTargets(scope, singleTargetLocale));
+                menu.AddItem(new GUIContent(label), false, () => StartTranslationForSelectedTargets(scope));
                 return;
             }
 
@@ -245,19 +245,19 @@ namespace TimboJimboEditor.Localization
             if (defaultTranslatorIndex >= 0)
             {
                 AiTranslator defaultTranslator = translators[defaultTranslatorIndex];
-                menu.AddItem(new GUIContent(label), false, () => StartTranslationForSelectedTargets(defaultTranslator, scope, singleTargetLocale));
+                menu.AddItem(new GUIContent(label), false, () => StartTranslationForSelectedTargets(defaultTranslator, scope));
             }
 
-            AddTranslatorSelectionSubmenu(menu, GetTranslateWithLabel(label), translators, scope, singleTargetLocale);
+            AddTranslatorSelectionSubmenu(menu, GetTranslateWithLabel(label), translators, scope);
         }
 
-        private void AddTranslatorSelectionSubmenu(GenericMenu menu, string label, List<AiTranslator> translators, TranslationJobScope scope, LocalizationLocale singleTargetLocale)
+        private void AddTranslatorSelectionSubmenu(GenericMenu menu, string label, List<AiTranslator> translators, TranslationJobScope scope)
         {
             for (int i = 0; i < translators.Count; i++)
             {
                 AiTranslator translator = translators[i];
                 string translatorLabel = GetTranslatorMenuLabel(translators, i);
-                menu.AddItem(new GUIContent($"{label}/{translatorLabel}"), false, () => StartTranslationForSelectedTargets(translator, scope, singleTargetLocale));
+                menu.AddItem(new GUIContent($"{label}/{translatorLabel}"), false, () => StartTranslationForSelectedTargets(translator, scope));
             }
         }
 
