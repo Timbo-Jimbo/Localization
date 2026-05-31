@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using TimboJimbo.Localization;
+using System.Linq;
 
 namespace TimboJimboEditor.Localization
 {
@@ -334,6 +335,17 @@ namespace TimboJimboEditor.Localization
 
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssetIfDirty(settings);
+
+            // Find all LocalizedValues in the project and sync them to add entries for the new locale.
+            var localizedValues = AssetDatabase.FindAssets($"t:{nameof(LocalizedValue)}")
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .SelectMany(AssetDatabase.LoadAllAssetsAtPath)
+                .OfType<LocalizedValue>()
+                .Where(lv => lv != null);
+
+            foreach (var localizedValue in localizedValues)
+                localizedValue.SyncWithProjectLocales();
+
             return locale;
         }
 

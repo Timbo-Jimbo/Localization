@@ -1,14 +1,20 @@
 using System;
 using System.Collections.Generic;
-using Cysharp.Text;
-using TimboJimbo.Localization.Debugging;
 using TimboJimbo.Localization.Utility;
 using UnityEngine;
+using UnityEngine.Pool;
 
 namespace TimboJimbo.Localization
 {
     public abstract class LocalizedValue : ScriptableObject
     {
+        internal abstract void SyncWithProjectLocales();
+
+        protected virtual void OnEnable()
+        {
+            SyncWithProjectLocales();
+        }
+
         protected void Log(string message)
         {
             Debug.Log($"{name} ({GetType().Name}): {message}", this);
@@ -37,6 +43,57 @@ namespace TimboJimbo.Localization
         public string Description;
 
         public List<LocaleValuePair<T>> Values = new();
+        internal override void SyncWithProjectLocales()
+        {
+            if(LocalizationSettings.ActiveAsset == null) return;
+
+            using(ListPool<LocalizationLocale>.Get(out var projectLocales))
+            {
+                projectLocales.AddRange(LocalizationSettings.Locales);
+                    
+                var changed = false;
+
+                foreach(var locale in LocalizationSettings.Locales)
+                {
+                    if(locale == null) continue;
+
+                    if (!LocaleValuePair.TryFind(Values, locale, out _))
+                    {
+                        Values.Add(new LocaleValuePair<T>()
+                        {
+                            Locale = locale,
+                            Value = NonNullFallbackValue.ForType<T>()
+                        });
+                        changed = true;
+                    }
+                }
+
+                // ensure same order as LocalizationSettings.Locales
+                for(int i = 0; i < projectLocales.Count; i++)
+                {
+                    var locale = projectLocales[i];
+                    if(locale == null) continue;
+
+                    if (LocaleValuePair.TryFind(Values, locale, out var pair))
+                    {
+                        int currentIndex = Values.IndexOf(pair);
+                        if(currentIndex != i)
+                        {
+                            Values.RemoveAt(currentIndex);
+                            Values.Insert(i, pair);
+                            changed = true;
+                        }
+                    }
+                }
+
+                if(changed)
+                {
+                    #if UNITY_EDITOR
+                    UnityEditor.EditorUtility.SetDirty(this);
+                    #endif
+                }
+            }
+        }
 
         public T Resolve(LocalizationLocale locale)
         {

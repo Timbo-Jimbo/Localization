@@ -12,15 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5182171563d8a704b982ffd523a14724, type: 3}
   m_Name: HelloWorld
   m_EditorClassIdentifier: TimboJimbo.Localization.Runtime::TimboJimbo.Localization.LocalizedString
-  UsageContext:
-    Context: {fileID: 11400000}
-    SourcePath: Assets/Localization/HelloWorld.asset
-    PropertyPath: LocalizedString
   Description: 
   Values:
   - Locale: {fileID: 7727329127922598521, guid: 88755cb34b0017347a904f390142e81f, type: 2}
-    Value: Hello, World!
+    Value: Hello, world!
+  - Locale: {fileID: 5506309679104028584, guid: 88755cb34b0017347a904f390142e81f, type: 2}
+    Value: "Merhaba, d\xFCnya!"
   - Locale: {fileID: 7271523973248025326, guid: 88755cb34b0017347a904f390142e81f, type: 2}
     Value: Hallo, Welt!
-  - Locale: {fileID: 5506309679104028584, guid: 88755cb34b0017347a904f390142e81f, type: 2}
-    Value: "Merhaba, D\xFCnya!"

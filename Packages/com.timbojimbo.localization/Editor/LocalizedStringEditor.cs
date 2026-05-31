@@ -8,14 +8,10 @@ using UnityEngine.UI;
 
 namespace TimboJimboEditor.Localization
 {
-
     [CustomEditor(typeof(LocalizedString))]
     [CanEditMultipleObjects]
     public sealed class LocalizedStringEditor : LocalizedValueEditor
     {
-        private const float TranslatingPulseFrequency = 1.5f;
-        private const float TranslatingPulseMinAlpha = 0.35f;
-
         private TranslationJobs.InspectorState _jobState;
 
         protected override void OnEnable()
@@ -51,7 +47,7 @@ namespace TimboJimboEditor.Localization
             if (Event.current.type == EventType.Layout)
             {
                 RefreshJobState();
-                ExpandRowsForActiveLocales();
+                ExpandRowsForLocalesBeingTranslated();
             }
             
             base.OnInspectorGUI();
@@ -160,30 +156,23 @@ namespace TimboJimboEditor.Localization
         {
             bool hasLocaleState = _jobState.TryGetLocaleState(locale, out TranslationJobs.LocalePresentationState localeState);
             bool isTranslating = hasLocaleState && localeState.IsTranslating;
-            Color previousGuiColor = GUI.color;
-            if (isTranslating)
-            {
-                float pulse = TranslatingPulseMinAlpha
-                    + (1f - TranslatingPulseMinAlpha)
-                    * (0.5f + 0.5f * Mathf.Sin((float)(EditorApplication.timeSinceStartup * Mathf.PI * 2f * TranslatingPulseFrequency)));
-                GUI.color = new Color(previousGuiColor.r, previousGuiColor.g, previousGuiColor.b, previousGuiColor.a * pulse);
-            }
 
-            float height = EditorGUIUtility.singleLineHeight * (locale == LocalizationSettings.DefaultLocale ? 8f : 4f) + 4f;
-
-            using (new EditorGUI.DisabledScope(isTranslating))
+            using(LocalizationEditorGUI.PulseScope(pulse: isTranslating, repaintFn: Repaint))
             {
-                if (isTranslating && !string.IsNullOrEmpty(localeState.PartialText))
+                float height = EditorGUIUtility.singleLineHeight * (locale == LocalizationSettings.DefaultLocale ? 8f : 4f) + 4f;
+
+                using (new EditorGUI.DisabledScope(isTranslating))
                 {
-                    LocalizationEditorGUI.DrawFormatTextArea(GetTextAreaControlKey(valueProperty), localeState.PartialText, height);
-                }
-                else
-                {
-                    DrawStringTextArea(valueProperty, height);
+                    if (isTranslating && !string.IsNullOrEmpty(localeState.PartialText))
+                    {
+                        LocalizationEditorGUI.DrawFormatTextArea(GetTextAreaControlKey(valueProperty), localeState.PartialText, height);
+                    }
+                    else
+                    {
+                        DrawStringTextArea(valueProperty, height);
+                    }
                 }
             }
-
-            GUI.color = previousGuiColor;
         }
 
         public override bool TrySeedDefaultValueFromTarget(GameObject target, LocalizationLocale locale, SerializedProperty value)
@@ -373,16 +362,16 @@ namespace TimboJimboEditor.Localization
             _jobState = TranslationJobs.GetInspectorState(serializedObject != null ? serializedObject.targetObjects : null);
         }
 
-        private void ExpandRowsForActiveLocales()
+        private void ExpandRowsForLocalesBeingTranslated()
         {
             if (!_jobState.HasRelevantJobs)
             {
                 return;
             }
 
-            for (int i = 0; i < ProjectLocales.Length; i++)
+            for (int i = 0; i < LocalizationSettings.Locales.Count; i++)
             {
-                LocalizationLocale locale = ProjectLocales[i];
+                LocalizationLocale locale = LocalizationSettings.Locales[i];
                 if (locale != null && _jobState.TryGetLocaleState(locale, out TranslationJobs.LocalePresentationState localeState) && localeState.IsTranslating)
                     SetLocaleRowExpanded(locale, true);
             }

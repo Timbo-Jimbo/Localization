@@ -25,15 +25,12 @@ namespace TimboJimboEditor.Localization
 
         protected SerializedProperty ValuesProperty { get; private set; }
         protected SerializedProperty DescriptionProperty { get; private set; }
-        protected LocalizationLocale[] ProjectLocales { get; private set; } = Array.Empty<LocalizationLocale>();
         protected bool IsEditingMultipleObjects => serializedObject.targetObjects.Length > 1;
 
         protected virtual void OnEnable()
         {
             ValuesProperty = serializedObject.FindProperty(ValuesPropertyName);
             DescriptionProperty = serializedObject.FindProperty(DescriptionPropertyName);
-            RefreshProjectLocales();
-            SyncTargetsWithProjectLocales();
         }
 
         protected virtual void OnDisable()
@@ -56,12 +53,6 @@ namespace TimboJimboEditor.Localization
         /// </summary>
         public override void OnInspectorGUI()
         {
-            if (Event.current.type == EventType.Layout)
-            {
-                RefreshProjectLocales();
-                SyncTargetsWithProjectLocales();
-            }
-
             serializedObject.Update();
 
             if (ValuesProperty == null)
@@ -72,7 +63,7 @@ namespace TimboJimboEditor.Localization
                 return;
             }
 
-            if (ProjectLocales.Length == 0)
+            if (!LocalizationSettings.IsInitialized || LocalizationSettings.Locales.Count == 0)
             {
                 EditorGUILayout.HelpBox(
                     "No locales configured. Add them on the LocalizationSettings asset.",
@@ -217,7 +208,7 @@ namespace TimboJimboEditor.Localization
                 onToggle: toggle => SetLocaleRowExpanded(locale, toggle),
                 onGroupToggle: toggle =>
                 {
-                    foreach (LocalizationLocale l in ProjectLocales)
+                    foreach (LocalizationLocale l in LocalizationSettings.Locales)
                         SetLocaleRowExpanded(l, toggle);
                 }
             );
@@ -523,151 +514,6 @@ namespace TimboJimboEditor.Localization
                 return $"{code}  •  {nativeName}";
 
             return code;
-        }
-
-        private void RefreshProjectLocales()
-        {
-            List<LocalizationLocale> locales = new();
-            for (int i = 0; i < LocalizationSettings.Locales.Count; i++)
-            {
-                LocalizationLocale locale = LocalizationSettings.Locales[i];
-                if (locale != null && !locales.Contains(locale)) locales.Add(locale);
-            }
-
-            locales.Sort(CompareLocales);
-            ProjectLocales = locales.ToArray();
-        }
-
-        private static int CompareLocales(LocalizationLocale left, LocalizationLocale right)
-        {
-            if (ReferenceEquals(left, right)) return 0;
-            if (left == null) return 1;
-            if (right == null) return -1;
-
-            var leftDefault = IsDefaultLocale(left);
-            var rightDefault = IsDefaultLocale(right);
-            if (leftDefault != rightDefault) return leftDefault ? -1 : 1;
-
-            return string.Compare(GetRowTitle(left), GetRowTitle(right), StringComparison.OrdinalIgnoreCase);
-        }
-
-        internal void SyncTargetsWithProjectLocales()
-        {
-            if (ProjectLocales.Length == 0) return;
-
-            LocalizedValue[] selectedTargets = serializedObject.targetObjects.Cast<LocalizedValue>().ToArray();
-            for (int targetIndex = 0; targetIndex < selectedTargets.Length; targetIndex++)
-            {
-                LocalizedValue selectedTarget = selectedTargets[targetIndex];
-                if (selectedTarget == null) continue;
-
-                using SerializedObject targetObject = new(selectedTarget);
-                SerializedProperty valuesProperty = targetObject.FindProperty(ValuesPropertyName);
-                if (valuesProperty == null) continue;
-
-                bool changed = false;
-
-                for (int localeIndex = 0; localeIndex < ProjectLocales.Length; localeIndex++)
-                {
-                    LocalizationLocale locale = ProjectLocales[localeIndex];
-                    if (locale == null || ContainsLocale(valuesProperty, locale)) continue;
-
-                    int insertIndex = valuesProperty.arraySize;
-                    valuesProperty.InsertArrayElementAtIndex(insertIndex);
-                    SerializedProperty inserted = valuesProperty.GetArrayElementAtIndex(insertIndex);
-                    SerializedProperty insertedLocale = inserted.FindPropertyRelative(LocalePropertyName);
-                    SerializedProperty insertedValue = inserted.FindPropertyRelative(ValuePropertyName);
-
-                    if (insertedLocale != null) insertedLocale.objectReferenceValue = locale;
-                    ClearValue(insertedValue);
-                    changed = true;
-                }
-
-                if (ReorderRows(valuesProperty)) changed = true;
-
-                if (changed)
-                {
-                    targetObject.ApplyModifiedPropertiesWithoutUndo();
-                    LocalizationSettings.RaiseLocalizedValueChanged(selectedTarget);
-                }
-            }
-        }
-
-        private bool ReorderRows(SerializedProperty valuesProperty)
-        {
-            int count = valuesProperty.arraySize;
-            if (count <= 1) return false;
-
-            int[] currentOrder = new int[count];
-            for (int i = 0; i < count; i++) currentOrder[i] = i;
-
-            int[] desiredOrder = new int[count];
-            Array.Copy(currentOrder, desiredOrder, count);
-            Array.Sort(desiredOrder, (a, b) => CompareRowOrder(valuesProperty, a, b));
-
-            bool changed = false;
-            for (int targetIndex = 0; targetIndex < count; targetIndex++)
-            {
-                int sourceIndex = Array.IndexOf(currentOrder, desiredOrder[targetIndex]);
-                if (sourceIndex == targetIndex) continue;
-
-                valuesProperty.MoveArrayElement(sourceIndex, targetIndex);
-
-                int moved = currentOrder[sourceIndex];
-                if (sourceIndex > targetIndex)
-                {
-                    for (int j = sourceIndex; j > targetIndex; j--) currentOrder[j] = currentOrder[j - 1];
-                }
-                else
-                {
-                    for (int j = sourceIndex; j < targetIndex; j++) currentOrder[j] = currentOrder[j + 1];
-                }
-                currentOrder[targetIndex] = moved;
-                changed = true;
-            }
-
-            return changed;
-        }
-
-        private int CompareRowOrder(SerializedProperty valuesProperty, int leftIndex, int rightIndex)
-        {
-            LocalizationLocale leftLocale = GetRowLocale(valuesProperty, leftIndex);
-            LocalizationLocale rightLocale = GetRowLocale(valuesProperty, rightIndex);
-
-            int leftRank = IndexInProjectLocales(leftLocale);
-            int rightRank = IndexInProjectLocales(rightLocale);
-
-            if (leftRank != rightRank) return leftRank.CompareTo(rightRank);
-            return leftIndex.CompareTo(rightIndex);
-        }
-
-        private int IndexInProjectLocales(LocalizationLocale locale)
-        {
-            if (locale == null) return int.MaxValue;
-            for (int i = 0; i < ProjectLocales.Length; i++)
-                if (ProjectLocales[i] == locale) return i;
-            return int.MaxValue - 1;
-        }
-
-        private static LocalizationLocale GetRowLocale(SerializedProperty valuesProperty, int index)
-        {
-            SerializedProperty elementProperty = valuesProperty.GetArrayElementAtIndex(index);
-            SerializedProperty localeProperty = elementProperty.FindPropertyRelative(LocalePropertyName);
-            return localeProperty != null ? localeProperty.objectReferenceValue as LocalizationLocale : null;
-        }
-
-        private static bool ContainsLocale(SerializedProperty valuesProperty, LocalizationLocale locale)
-        {
-            if (valuesProperty == null || locale == null) return false;
-
-            for (int i = 0; i < valuesProperty.arraySize; i++)
-            {
-                SerializedProperty elementProperty = valuesProperty.GetArrayElementAtIndex(i);
-                SerializedProperty localeProperty = elementProperty.FindPropertyRelative(LocalePropertyName);
-                if (localeProperty != null && localeProperty.objectReferenceValue == locale) return true;
-            }
-
-            return false;
         }
 
         private static void ClearValue(SerializedProperty valueProperty)

@@ -14,6 +14,13 @@ namespace TimboJimboEditor.Localization
         public static GUIStyle RowSubtitleStyle => Styles.RowSubtitleStyle;
         public static GUIStyle DefaultTagStyle => Styles.DefaultTagStyle;
         public static GUIStyle MissingTagStyle => Styles.MissingTagStyle;
+        private const float TranslatingPulseFrequency = 1.5f;
+        private const float TranslatingPulseMinAlpha = 0.35f;
+
+        public static PulseScopeHandle PulseScope(bool pulse, Action repaintFn)
+        {
+            return new PulseScopeHandle(pulse, repaintFn);
+        }
 
         public static void DrawFoldout(
             ref bool expanded, 
@@ -90,6 +97,18 @@ namespace TimboJimboEditor.Localization
                 }
             }
         }
+
+        public static void DrawSpinner(Rect rect)
+        {
+            int frame = (int)(EditorApplication.timeSinceStartup * 10) % 12;
+            GUIContent icon = EditorGUIUtility.IconContent($"WaitSpin{frame:00}");
+            Color prevColor = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, 0.5f);
+            GUI.Label(rect, icon);
+            GUI.color = prevColor;
+            HandleUtility.Repaint();
+        }
+
 
         public static bool DrawKebabMenu(string label = null) => DrawGhostButton("_Menu", label);
         public static bool DrawRemoveButton(string label = null) => DrawGhostButton("Toolbar Minus", label);
@@ -509,6 +528,37 @@ namespace TimboJimboEditor.Localization
                 OnClick = onClick;
             }
         }
+
+        public struct PulseScopeHandle : IDisposable
+        {
+            private readonly bool _pulse;
+            private readonly Color _previousColor;
+            private readonly Action _repaintRequest;
+
+            public PulseScopeHandle(bool pulse, Action repaintRequest)
+            {
+                _pulse = pulse;
+                _previousColor = GUI.color;
+                _repaintRequest = repaintRequest;
+
+                if(!pulse) return;
+
+                float pulseValue = TranslatingPulseMinAlpha
+                    + (1f - TranslatingPulseMinAlpha)
+                    * (0.5f + 0.5f * Mathf.Sin((float)(EditorApplication.timeSinceStartup * Mathf.PI * 2f * TranslatingPulseFrequency)));
+
+                GUI.color = new Color(_previousColor.r, _previousColor.g, _previousColor.b, _previousColor.a * pulseValue);
+            }
+
+            public void Dispose()
+            {
+                if (!_pulse) return;
+
+                GUI.color = _previousColor;
+                _repaintRequest?.Invoke();
+            }
+        }
+        
 
     }
 }

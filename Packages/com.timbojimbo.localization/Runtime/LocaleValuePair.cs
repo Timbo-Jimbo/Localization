@@ -12,6 +12,28 @@ namespace TimboJimbo.Localization
 
     internal static class LocaleValuePair
     {
+        public static bool TryFind<T>(List<LocaleValuePair<T>> list, LocalizationLocale targetLocale, out LocaleValuePair<T> result)
+        {
+            result = default;
+
+            if (list == null || list.Count == 0) return false;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                LocaleValuePair<T> pair = list[i];
+
+                if (pair == null || pair.Locale == null) continue;
+
+                if (pair.Locale.Equals(targetLocale))
+                {
+                    result = pair;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
         public static bool TryFindBestMatch<T>(List<LocaleValuePair<T>> list, LocalizationLocale targetLocale, out LocaleValuePair<T> result)
         {
             result = default;

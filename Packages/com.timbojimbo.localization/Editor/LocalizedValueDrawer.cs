@@ -25,56 +25,40 @@ namespace TimboJimboEditor.Localization
         {
             HandlePickerOpenClick(position, localizedAssetType, property);
 
-            bool isTranslating = !property.hasMultipleDifferentValues
-                && property.objectReferenceValue != null
-                && TranslationJobs.IsTranslating(property.objectReferenceValue);
-
-            bool previousShowMixedValue = EditorGUI.showMixedValue;
-            EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
-            GUI.SetNextControlName(property.propertyPath);
-
-            Color prevColor = GUI.color;
+            bool isTranslating = false;
             
-            if (isTranslating)
+            if(!property.hasMultipleDifferentValues && property.objectReferenceValue is LocalizedString localizedValue)
+                isTranslating = TranslationJobs.GetInspectorState(new []{ localizedValue }).HasRelevantJobs;
+
+            using (LocalizationEditorGUI.PulseScope(pulse: isTranslating, repaintFn: HandleUtility.Repaint))
             {
-                float pulse = (Mathf.Sin((float)EditorApplication.timeSinceStartup * 4f) + 1f) * 0.5f;
-                float a = Mathf.Lerp(0.5f, 1f, pulse);
-                GUI.color = new Color(prevColor.r, prevColor.g, prevColor.b, prevColor.a * a);
+                bool previousShowMixedValue = EditorGUI.showMixedValue;
+                EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
+                EditorGUI.BeginProperty(position, label, property);
+                GUI.SetNextControlName(property.propertyPath);
+                EditorGUI.PropertyField(position, property, label, true);
+                EditorGUI.showMixedValue = previousShowMixedValue;
+
+                if (isTranslating)
+                {
+                    float spinnerSize = EditorGUIUtility.singleLineHeight;
+                    Rect spinnerRect = new(
+                        position.xMax - ObjectPickerButtonWidth - spinnerSize - 2f,
+                        position.y + (EditorGUIUtility.singleLineHeight - spinnerSize) * 0.5f,
+                        spinnerSize,
+                        spinnerSize);
+                    
+                    LocalizationEditorGUI.DrawSpinner(spinnerRect);
+                }
+
+                EditorGUI.EndProperty();
             }
 
-            EditorGUI.PropertyField(position, property, label, true);
-            GUI.color = prevColor;
-            EditorGUI.showMixedValue = previousShowMixedValue;
-
-            if (isTranslating)
-            {
-                DrawSpinner(position);
-                HandleUtility.Repaint();
-            }
         }
-
-        private static void DrawSpinner(Rect fieldRect)
-        {
-            // Spinner icon to the left of the object-picker button, at 50% opacity.
-            float size = EditorGUIUtility.singleLineHeight;
-            Rect spinnerRect = new(
-                fieldRect.xMax - ObjectPickerButtonWidth - size - 2f,
-                fieldRect.y + (EditorGUIUtility.singleLineHeight - size) * 0.5f,
-                size,
-                size);
-
-            int frame = (int)(EditorApplication.timeSinceStartup * 10) % 12;
-            GUIContent icon = EditorGUIUtility.IconContent($"WaitSpin{frame:00}");
-            Color prevColor = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, 0.5f);
-            GUI.Label(spinnerRect, icon);
-            GUI.color = prevColor;
-        }
-
         private static void HandlePickerOpenClick(Rect position, Type localizedAssetType, SerializedProperty property)
         {
             Event currentEvent = Event.current;
-            if (currentEvent.type == EventType.KeyDown && currentEvent.keyCode == KeyCode.Space)
+            if (currentEvent.type == EventType.KeyDown && (currentEvent.keyCode == KeyCode.Space || currentEvent.keyCode == KeyCode.Return))
             {
                 if (GUI.GetNameOfFocusedControl().Equals(property.propertyPath, StringComparison.Ordinal))
                 {
@@ -147,7 +131,6 @@ namespace TimboJimboEditor.Localization
                 LocalizedAssetFolder displayRootFolder = GetDisplayRootFolder(rootFolder);
                 AdvancedDropdownItem root = new(GetFolderDisplayName(displayRootFolder));
 
-
                 // Suggested matches based on target GameObject name
                 string targetName = GetTargetGameObjectName();
                 if (!string.IsNullOrEmpty(targetName))
@@ -196,7 +179,7 @@ namespace TimboJimboEditor.Localization
                 for (int i = 0; i < assets.Count; i++)
                 {
                     string assetLower = assets[i].name.ToLowerInvariant();
-                    int score = FuzzyScore(assetLower, targetLower, targetTokens);
+                    int score = ComputeFuzzyScore(assetLower, targetLower, targetTokens);
                     if (score > 0)
                         scored.Add((assets[i], score));
                 }
@@ -209,114 +192,114 @@ namespace TimboJimboEditor.Localization
                     results.Add(scored[i].asset);
 
                 return results;
-            }
-
-            private static int FuzzyScore(string assetName, string targetName, string[] targetTokens)
-            {
-                int score = 0;
-
-                // Exact match
-                if (assetName == targetName) return 1000;
-
-                // Full-name Levenshtein (normalized to 0–100)
-                int fullDist = LevenshteinDistance(assetName, targetName);
-                int maxLen = Math.Max(assetName.Length, targetName.Length);
-                if (maxLen > 0)
+                
+                static int ComputeFuzzyScore(string assetName, string targetName, string[] targetTokens)
                 {
-                    float fullSimilarity = 1f - (float)fullDist / maxLen;
-                    if (fullSimilarity >= 0.5f)
-                        score += (int)(fullSimilarity * 100f);
-                }
+                    int score = 0;
 
-                // Contains full name
-                if (assetName.Contains(targetName) || targetName.Contains(assetName))
-                    score += 100;
+                    // Exact match
+                    if (assetName == targetName) return 1000;
 
-                // Token matching with Levenshtein
-                string[] assetTokens = TokenizeName(assetName);
-                for (int i = 0; i < targetTokens.Length; i++)
-                {
-                    int bestTokenScore = 0;
-                    for (int j = 0; j < assetTokens.Length; j++)
+                    // Full-name Levenshtein (normalized to 0–100)
+                    int fullDist = LevenshteinDistance(assetName, targetName);
+                    int maxLen = Math.Max(assetName.Length, targetName.Length);
+                    if (maxLen > 0)
                     {
-                        int tokenScore = 0;
-                        if (assetTokens[j] == targetTokens[i])
-                        {
-                            tokenScore = 20;
-                        }
-                        else if (assetTokens[j].Contains(targetTokens[i]) || targetTokens[i].Contains(assetTokens[j]))
-                        {
-                            tokenScore = 10;
-                        }
-
-                        // Levenshtein between tokens (up to 15 bonus points)
-                        int tokenMaxLen = Math.Max(assetTokens[j].Length, targetTokens[i].Length);
-                        if (tokenMaxLen > 0)
-                        {
-                            int dist = LevenshteinDistance(assetTokens[j], targetTokens[i]);
-                            float similarity = 1f - (float)dist / tokenMaxLen;
-                            if (similarity >= 0.4f)
-                                tokenScore = Math.Max(tokenScore, (int)(similarity * 15f));
-                        }
-
-                        bestTokenScore = Math.Max(bestTokenScore, tokenScore);
-                    }
-                    score += bestTokenScore;
-                }
-
-                return score;
-            }
-
-            private static int LevenshteinDistance(string a, string b)
-            {
-                if (string.IsNullOrEmpty(a)) return b?.Length ?? 0;
-                if (string.IsNullOrEmpty(b)) return a.Length;
-
-                int[] prev = new int[b.Length + 1];
-                int[] curr = new int[b.Length + 1];
-
-                for (int j = 0; j <= b.Length; j++)
-                    prev[j] = j;
-
-                for (int i = 1; i <= a.Length; i++)
-                {
-                    curr[0] = i;
-                    for (int j = 1; j <= b.Length; j++)
-                    {
-                        int cost = a[i - 1] == b[j - 1] ? 0 : 1;
-                        curr[j] = Math.Min(
-                            Math.Min(curr[j - 1] + 1, prev[j] + 1),
-                            prev[j - 1] + cost);
+                        float fullSimilarity = 1f - (float)fullDist / maxLen;
+                        if (fullSimilarity >= 0.5f)
+                            score += (int)(fullSimilarity * 100f);
                     }
 
-                    int[] tmp = prev;
-                    prev = curr;
-                    curr = tmp;
-                }
+                    // Contains full name
+                    if (assetName.Contains(targetName) || targetName.Contains(assetName))
+                        score += 100;
 
-                return prev[b.Length];
-            }
-
-            private static string[] TokenizeName(string name)
-            {
-                // Split on spaces, underscores, hyphens, and camelCase boundaries
-                var tokens = new List<string>();
-                int start = 0;
-                for (int i = 1; i <= name.Length; i++)
-                {
-                    bool isBoundary = i == name.Length
-                        || name[i] == ' ' || name[i] == '_' || name[i] == '-'
-                        || (char.IsUpper(name[i]) && i > 0 && char.IsLower(name[i - 1]));
-
-                    if (isBoundary)
+                    // Token matching with Levenshtein
+                    string[] assetTokens = TokenizeName(assetName);
+                    for (int i = 0; i < targetTokens.Length; i++)
                     {
-                        string token = name.Substring(start, i - start).Trim(' ', '_', '-');
-                        if (token.Length > 0)
-                            tokens.Add(token);
-                        start = i;
+                        int bestTokenScore = 0;
+                        for (int j = 0; j < assetTokens.Length; j++)
+                        {
+                            int tokenScore = 0;
+                            if (assetTokens[j] == targetTokens[i])
+                            {
+                                tokenScore = 20;
+                            }
+                            else if (assetTokens[j].Contains(targetTokens[i]) || targetTokens[i].Contains(assetTokens[j]))
+                            {
+                                tokenScore = 10;
+                            }
+
+                            // Levenshtein between tokens (up to 15 bonus points)
+                            int tokenMaxLen = Math.Max(assetTokens[j].Length, targetTokens[i].Length);
+                            if (tokenMaxLen > 0)
+                            {
+                                int dist = LevenshteinDistance(assetTokens[j], targetTokens[i]);
+                                float similarity = 1f - (float)dist / tokenMaxLen;
+                                if (similarity >= 0.4f)
+                                    tokenScore = Math.Max(tokenScore, (int)(similarity * 15f));
+                            }
+
+                            bestTokenScore = Math.Max(bestTokenScore, tokenScore);
+                        }
+                        score += bestTokenScore;
                     }
+
+                    return score;
                 }
-                return tokens.ToArray();
+
+                static int LevenshteinDistance(string a, string b)
+                {
+                    if (string.IsNullOrEmpty(a)) return b?.Length ?? 0;
+                    if (string.IsNullOrEmpty(b)) return a.Length;
+
+                    int[] prev = new int[b.Length + 1];
+                    int[] curr = new int[b.Length + 1];
+
+                    for (int j = 0; j <= b.Length; j++)
+                        prev[j] = j;
+
+                    for (int i = 1; i <= a.Length; i++)
+                    {
+                        curr[0] = i;
+                        for (int j = 1; j <= b.Length; j++)
+                        {
+                            int cost = a[i - 1] == b[j - 1] ? 0 : 1;
+                            curr[j] = Math.Min(
+                                Math.Min(curr[j - 1] + 1, prev[j] + 1),
+                                prev[j - 1] + cost);
+                        }
+
+                        int[] tmp = prev;
+                        prev = curr;
+                        curr = tmp;
+                    }
+
+                    return prev[b.Length];
+                }
+
+                static string[] TokenizeName(string name)
+                {
+                    // Split on spaces, underscores, hyphens, and camelCase boundaries
+                    var tokens = new List<string>();
+                    int start = 0;
+                    for (int i = 1; i <= name.Length; i++)
+                    {
+                        bool isBoundary = i == name.Length
+                            || name[i] == ' ' || name[i] == '_' || name[i] == '-'
+                            || (char.IsUpper(name[i]) && i > 0 && char.IsLower(name[i - 1]));
+
+                        if (isBoundary)
+                        {
+                            string token = name.Substring(start, i - start).Trim(' ', '_', '-');
+                            if (token.Length > 0)
+                                tokens.Add(token);
+                            start = i;
+                        }
+                    }
+                    return tokens.ToArray();
+                }
             }
 
             protected override void ItemSelected(AdvancedDropdownItem item)
@@ -652,11 +635,11 @@ namespace TimboJimboEditor.Localization
             //translate toggle
             if (_assetEditor != null && _assetType == typeof(LocalizedString) && AiTranslator.GetDefaultTranslator() != null)
             {
-                Prefs.AutoTranslateOnCreate = EditorGUILayout.Toggle("Translate On Create", Prefs.AutoTranslateOnCreate);
+                Prefs.TranslateOnCreate = EditorGUILayout.Toggle("Translate On Create", Prefs.TranslateOnCreate);
             }
             else
             {
-                Prefs.AutoTranslateOnCreate = false;
+                Prefs.TranslateOnCreate = false;
             }
 
             EditorGUILayout.BeginHorizontal();
@@ -779,14 +762,8 @@ namespace TimboJimboEditor.Localization
             _saved = true;
             AssignToTargets(_asset);
             
-            if(Prefs.AutoTranslateOnCreate)
-            {
-                // hacky, i dont like this part. I think i'd rather formalize when and how the 
-                // locale lists get synced, instead of just being as a side-effect of opening the editor
-                // for a localized value asset
-                _assetEditor.SyncTargetsWithProjectLocales();
-                TranslationJobs.TryStartJob(AiTranslator.GetDefaultTranslator(), new [] { _asset }, TranslationJobScope.All, null, out var _);
-            }
+            if(Prefs.TranslateOnCreate)
+                TranslationJobs.TryStartJob(AiTranslator.GetDefaultTranslator(), new [] { _asset }, TranslationJobScope.Missing, null, out var _);
 
             Close();
 
@@ -817,10 +794,10 @@ namespace TimboJimboEditor.Localization
 
         private static class Prefs
         {
-            public static bool AutoTranslateOnCreate
+            public static bool TranslateOnCreate
             {
-                get => EditorPrefs.GetBool($"{nameof(LocalizedAssetCreationWindow)}.{nameof(AutoTranslateOnCreate)}", false);
-                set => EditorPrefs.SetBool($"{nameof(LocalizedAssetCreationWindow)}.{nameof(AutoTranslateOnCreate)}", value);
+                get => EditorPrefs.GetBool($"{nameof(LocalizedAssetCreationWindow)}.{nameof(TranslateOnCreate)}", false);
+                set => EditorPrefs.SetBool($"{nameof(LocalizedAssetCreationWindow)}.{nameof(TranslateOnCreate)}", value);
             }
         }
     }
