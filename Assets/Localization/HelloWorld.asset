@@ -15,8 +15,14 @@ MonoBehaviour:
   Description: 
   Values:
   - Locale: {fileID: 7727329127922598521, guid: 88755cb34b0017347a904f390142e81f, type: 2}
-    Value: Hello, world!
+    Value: Hello there! How are you doing today?
   - Locale: {fileID: 5506309679104028584, guid: 88755cb34b0017347a904f390142e81f, type: 2}
-    Value: "Merhaba d\xFCnya!"
+    Value: "Merhaba! Bug\xFCn nas\u0131ls\u0131n?"
   - Locale: {fileID: 7271523973248025326, guid: 88755cb34b0017347a904f390142e81f, type: 2}
-    Value: Hallo Welt!
+    Value: Hallo! Wie geht es dir heute?
+  - Locale: {fileID: -7938366427047598671, guid: 88755cb34b0017347a904f390142e81f, type: 2}
+    Value: "Salut ! Comment \xE7a va aujourd\u2019hui ?"
+  - Locale: {fileID: -5025172244062229389, guid: 88755cb34b0017347a904f390142e81f, type: 2}
+    Value: "\u3053\u3093\u306B\u3061\u306F\uFF01\u4ECA\u65E5\u306F\u8ABF\u5B50\u3069\u3046\uFF1F"
+  - Locale: {fileID: 7402962953651476138, guid: 88755cb34b0017347a904f390142e81f, type: 2}
+    Value: "\uC548\uB155\uD558\uC138\uC694! \uC624\uB298 \uAE30\uBD84\uC740 \uC5B4\uB5A0\uC138\uC694?"

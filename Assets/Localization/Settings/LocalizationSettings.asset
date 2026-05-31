@@ -1,5 +1,35 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7938366427047598671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "fran\xE7ais"
+  m_EditorClassIdentifier: TimboJimbo.Localization.Runtime::TimboJimbo.Localization.LocalizationLocale
+  _languageCode: fr
+  _countryCode: 
+  _nativeName: "fran\xE7ais"
+--- !u!114 &-5025172244062229389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "\u65E5\u672C\u8A9E"
+  m_EditorClassIdentifier: TimboJimbo.Localization.Runtime::TimboJimbo.Localization.LocalizationLocale
+  _languageCode: ja
+  _countryCode: 
+  _nativeName: "\u65E5\u672C\u8A9E"
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16,6 +46,9 @@ MonoBehaviour:
   - {fileID: 7727329127922598521}
   - {fileID: 5506309679104028584}
   - {fileID: 7271523973248025326}
+  - {fileID: -7938366427047598671}
+  - {fileID: -5025172244062229389}
+  - {fileID: 7402962953651476138}
   _defaultLocale: {fileID: 7727329127922598521}
 --- !u!114 &5506309679104028584
 MonoBehaviour:
@@ -47,6 +80,21 @@ MonoBehaviour:
   _languageCode: de
   _countryCode: 
   _nativeName: Deutsch
+--- !u!114 &7402962953651476138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4f00d2e2b0048459e64c13d4c5eca5, type: 3}
+  m_Name: "\uD55C\uAD6D\uC5B4"
+  m_EditorClassIdentifier: TimboJimbo.Localization.Runtime::TimboJimbo.Localization.LocalizationLocale
+  _languageCode: ko
+  _countryCode: 
+  _nativeName: "\uD55C\uAD6D\uC5B4"
 --- !u!114 &7727329127922598521
 MonoBehaviour:
   m_ObjectHideFlags: 0
