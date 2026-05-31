@@ -5,6 +5,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Pool;
 using TimboJimbo.Localization;
+using TimboJimboEditor.Localization.Utility;
+using System;
 
 namespace TimboJimboEditor.Localization
 {
@@ -217,16 +219,57 @@ namespace TimboJimboEditor.Localization
             EditorGUILayout.Space(4f);
             OnLocaleValueGUI(locale, valueProperty);
 
-            if (locale == null)
-                EditorGUILayout.HelpBox("This entry has no Locale assigned. It will be ignored at runtime.", MessageType.Warning);
-            else if (IsDuplicateLocale(locale))
-                EditorGUILayout.HelpBox("Duplicate Locale: another entry uses the same Locale asset.", MessageType.Warning);
+            if (IsDuplicateLocale(locale))
+                EditorGUILayout.HelpBox($"Duplicate Locale: There are two or more entries that define a value for the same '{locale.name}'.", MessageType.Warning);
 
             EditorGUILayout.Space(2f);
         }
 
         private void DrawRowHeaderContent(LocalizationLocale locale, SerializedProperty valueProperty)
         {
+            if(locale == null)
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    var warningIcon = EditorGUIUtility.IconContent("warning").image;
+                    GUILayout.Label(new GUIContent("Missing Locale", warningIcon), LocalizationEditorGUI.RowTitleStyle, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true));
+                    GUILayout.FlexibleSpace();
+                    if(LocalizationEditorGUI.KebabMenuButton())
+                    {
+                        var menu = new GenericMenu();
+                        menu.AddItem(new GUIContent("Remove Missing Locales"), false, () =>
+                        {
+                            var response = EditorUtility.DisplayDialogComplex(
+                                "Remove Missing Locales",
+                                "Would you like to remove missing locales from all other assets in the project as well?",
+                                ok: "Yes, remove from all assets",
+                                cancel: "Cancel",
+                                alt: "Just this asset"
+                            );
+
+                            const int Ok = 0;
+                            const int Cancel = 1;
+                            const int Alt = 2;
+
+                            if(response == Cancel) return;
+
+                            var removeTargets = response switch
+                            {
+                                Ok => LocalizedValueEditorUtility.FindAllLocalizedValuesInProject(),
+                                Alt => targets.OfType<LocalizedValue>().ToList(),
+                                _ => throw new ArgumentOutOfRangeException(nameof(response))
+                            };
+
+                            foreach (var localizedValue in removeTargets)
+                                localizedValue.SyncWithProjectLocales(removeEntriesWithMissingLocales: true);
+                        });
+                        menu.ShowAsContext();
+                    }
+                }
+
+                return;
+            }
+
             DrawRowHeaderTitleArea(locale, valueProperty);
             GUILayout.FlexibleSpace();
             DrawRowHeaderMenuArea(locale, valueProperty);
@@ -261,7 +304,7 @@ namespace TimboJimboEditor.Localization
         
         protected void DrawRowHeaderMenuButton(LocalizationLocale locale, SerializedProperty valueProperty)
         {
-            if (LocalizationEditorGUI.DrawKebabMenu())
+            if (LocalizationEditorGUI.KebabMenuButton())
             {
                 GenericMenu menu = new();
                 BuildRowHeaderMenu(menu, locale, valueProperty);

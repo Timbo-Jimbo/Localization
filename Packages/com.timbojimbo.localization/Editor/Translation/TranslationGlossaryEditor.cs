@@ -209,7 +209,7 @@ namespace TimboJimboEditor.Localization.Translations
         private static void DrawEntryHeaderContent(SerializedProperty termEntryProperty, ref bool removeClicked)
         {
             EditorGUILayout.PropertyField(termEntryProperty, new GUIContent(GetEntryTitle(termEntryProperty.objectReferenceValue as LocalizedString)));
-            if (LocalizationEditorGUI.DrawRemoveButton())
+            if (LocalizationEditorGUI.RemoveButton())
                 removeClicked = true;
         }
 

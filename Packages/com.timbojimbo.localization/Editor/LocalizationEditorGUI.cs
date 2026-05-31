@@ -111,17 +111,16 @@ namespace TimboJimboEditor.Localization
         }
 
 
-        public static bool DrawKebabMenu(string label = null) => DrawGhostButton("_Menu", label);
-        public static bool DrawRemoveButton(string label = null) => DrawGhostButton("Toolbar Minus", label);
-
-        public static bool DrawAddButton(string label = null) => DrawGhostButton("Toolbar Plus", label);
+        public static bool KebabMenuButton(string label = null) => GhostButton("_Menu", label);
+        public static bool RemoveButton(string label = null) => GhostButton("Toolbar Minus", label);
+        public static bool AddButton(string label = null) => GhostButton("Toolbar Plus", label);
 
         /// <summary>
         /// Draws a small icon button with a hover highlight. The icon is looked
         /// up via <see cref="EditorGUIUtility.IconContent(string)"/>. Auto-sizes
         /// to fit the icon (and optional label). Returns true on click.
         /// </summary>
-        public static bool DrawGhostButton(string iconName, string label = null)
+        public static bool GhostButton(string iconName, string label = null)
         {
             GUIContent icon = EditorGUIUtility.IconContent(iconName);
             GUIContent content = string.IsNullOrEmpty(label)
@@ -139,7 +138,7 @@ namespace TimboJimboEditor.Localization
             EditorGUILayout.Space(2f);
         }
 
-        public static void DrawButtonGroup(
+        public static void ButtonGroup(
             List<ButtonGroupEntry> buttons,
             Action<GenericMenu> populateContextMenu = null)
         {
@@ -180,7 +179,7 @@ namespace TimboJimboEditor.Localization
             }
         }
 
-        public static string DrawFormatTextArea(string value, float minHeight)
+        public static string FormatTextArea(string value, float minHeight)
         {
             return FormatTextAreaGUI.Draw(value, minHeight);
         }

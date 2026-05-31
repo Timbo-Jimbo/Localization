@@ -8,7 +8,7 @@ namespace TimboJimbo.Localization
 {
     public abstract class LocalizedValue : ScriptableObject
     {
-        internal abstract void SyncWithProjectLocales();
+        internal abstract void SyncWithProjectLocales(bool removeEntriesWithMissingLocales = false);
         public abstract bool HasMeaningfulValueForLocale(LocalizationLocale locale);
 
         protected virtual void OnEnable()
@@ -45,9 +45,13 @@ namespace TimboJimbo.Localization
 
         public List<LocaleValuePair<T>> Values = new();
 
-        internal override void SyncWithProjectLocales()
+        internal override void SyncWithProjectLocales(bool removeEntriesWithMissingLocales = false)
         {
             if(LocalizationSettings.ActiveAsset == null) return;
+            
+            #if UNITY_EDITOR
+            UnityEditor.Undo.RecordObject(this, "Sync Localized Value with Project Locales");
+            #endif
 
             using(ListPool<LocalizationLocale>.Get(out var projectLocales))
             {
@@ -83,6 +87,19 @@ namespace TimboJimbo.Localization
                         {
                             Values.RemoveAt(currentIndex);
                             Values.Insert(i, pair);
+                            changed = true;
+                        }
+                    }
+                }
+
+                if (removeEntriesWithMissingLocales)
+                {
+                    for (int i = Values.Count - 1; i >= 0; i--)
+                    {
+                        var pair = Values[i];
+                        if (pair == null || pair.Locale == null)
+                        {
+                            Values.RemoveAt(i);
                             changed = true;
                         }
                     }

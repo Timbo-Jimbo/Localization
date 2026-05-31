@@ -6,6 +6,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using TimboJimbo.Localization;
 using System.Linq;
+using TimboJimboEditor.Localization.Utility;
 
 namespace TimboJimboEditor.Localization
 {
@@ -161,7 +162,7 @@ namespace TimboJimboEditor.Localization
                 GUILayout.Space(DefaultTagWidth);
             }
 
-            if (LocalizationEditorGUI.DrawKebabMenu())
+            if (LocalizationEditorGUI.KebabMenuButton())
             {
                 menuClicked = true;
             }
@@ -208,10 +209,11 @@ namespace TimboJimboEditor.Localization
             {
                 string title = GetLocaleTitle(locale);
                 bool confirmed = EditorUtility.DisplayDialog(
-                    "Delete Locale",
-                    $"Delete locale \"{title}\"?\n\nAny LocalizedString or LocalizedSprite values pointing at it will lose their translation. This cannot be undone via Ctrl+Z reliably.",
+                    $"Delete {title}?",
+                    $"You cannot undo the delete action.\n\nThis will also delete the localized data from all LocalizedValue assets in the project for this locale.",
                     "Delete",
                     "Cancel");
+
                 if (!confirmed) return;
             }
 
@@ -291,6 +293,11 @@ namespace TimboJimboEditor.Localization
 
             if(isDeletingActiveLocale)
                 LocalizationSettings.ClearActiveLocale();
+
+            // Find all LocalizedValues in the project and sync them to remove entries for the deleted locale.
+            var localizedValues = LocalizedValueEditorUtility.FindAllLocalizedValuesInProject();
+            foreach (var localizedValue in localizedValues)
+                localizedValue.SyncWithProjectLocales(removeEntriesWithMissingLocales: true);
         }
 
         private static LocalizationLocale CreateLocale(LocalizationSettings settings, CultureInfo culture)
@@ -337,12 +344,7 @@ namespace TimboJimboEditor.Localization
             AssetDatabase.SaveAssetIfDirty(settings);
 
             // Find all LocalizedValues in the project and sync them to add entries for the new locale.
-            var localizedValues = AssetDatabase.FindAssets($"t:{nameof(LocalizedValue)}")
-                .Select(AssetDatabase.GUIDToAssetPath)
-                .SelectMany(AssetDatabase.LoadAllAssetsAtPath)
-                .OfType<LocalizedValue>()
-                .Where(lv => lv != null);
-
+            var localizedValues = LocalizedValueEditorUtility.FindAllLocalizedValuesInProject();
             foreach (var localizedValue in localizedValues)
                 localizedValue.SyncWithProjectLocales();
 

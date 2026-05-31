@@ -82,7 +82,7 @@ namespace TimboJimboEditor.Localization
                     onClick: () => OnTranslateButtonClicked(TranslationJobScope.All, null)
                 ));
 
-                LocalizationEditorGUI.DrawButtonGroup(
+                LocalizationEditorGUI.ButtonGroup(
                     buttons: buttons,
                     populateContextMenu: (menu) => PopulateMenuTranslatorPicker(menu, TranslationJobScope.All, null)
                 );
@@ -178,7 +178,7 @@ namespace TimboJimboEditor.Localization
                 {
                     if (isTranslating && !string.IsNullOrEmpty(localeState.PartialText))
                     {
-                        LocalizationEditorGUI.DrawFormatTextArea(localeState.PartialText, height);
+                        LocalizationEditorGUI.FormatTextArea(localeState.PartialText, height);
                     }
                     else
                     {
@@ -220,7 +220,7 @@ namespace TimboJimboEditor.Localization
             using (new EditorGUI.MixedValueScope(property.hasMultipleDifferentValues))
             {
                 EditorGUI.BeginChangeCheck();
-                string newValue = LocalizationEditorGUI.DrawFormatTextArea(property.stringValue ?? string.Empty, minHeight);
+                string newValue = LocalizationEditorGUI.FormatTextArea(property.stringValue ?? string.Empty, minHeight);
                 bool changed = EditorGUI.EndChangeCheck();
 
                 if (changed)
