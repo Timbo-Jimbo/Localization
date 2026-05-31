@@ -1,4 +1,9 @@
-## [1.4.0] - 2026-05-30
+## [1.5.0] - 2026-05-31
+
+- Added `ImageLocalizer`
+- Fixed locales for non-default locale not being initialized correctly on `LocalizedValue` creation
+
+## [1.4.0] - 2026-05-31
 
 - Switched runtime text localizers to use `LocalizedString` and added legacy migration support from `LocalizableString`
 - Fixed `TextLocalizer` and `TMPTextLocalizer` so localized text clears correctly, applies only when enabled, and unbinds reliably

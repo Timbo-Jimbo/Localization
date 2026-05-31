@@ -518,20 +518,23 @@ namespace TimboJimboEditor.Localization
             _defaultLocale = LocalizationSettings.DefaultLocale;
 
             SerializedProperty valuesProperty = _assetSerialized.FindProperty(ValuesFieldName);
-            if (valuesProperty != null && valuesProperty.isArray)
+            if (valuesProperty != null && valuesProperty.isArray && valuesProperty.arraySize > 0)
             {
-                valuesProperty.arraySize = 1;
-                SerializedProperty pair = valuesProperty.GetArrayElementAtIndex(0);
-                SerializedProperty localeProperty = pair.FindPropertyRelative(PairLocaleFieldName);
-                if (localeProperty != null) localeProperty.objectReferenceValue = _defaultLocale;
+                SerializedProperty pair = FindDefaultLocalePair(valuesProperty, _defaultLocale) ?? valuesProperty.GetArrayElementAtIndex(0);
+                if (pair != null)
+                {
+                    SerializedProperty localeProperty = pair.FindPropertyRelative(PairLocaleFieldName);
+                    if (localeProperty != null && localeProperty.objectReferenceValue == null)
+                        localeProperty.objectReferenceValue = _defaultLocale;
 
-                _defaultLocaleValueProperty = pair.FindPropertyRelative(PairValueFieldName);
-                _assetSerialized.ApplyModifiedPropertiesWithoutUndo();
+                    _defaultLocaleValueProperty = pair.FindPropertyRelative(PairValueFieldName);
+                    _assetSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-                string localeName = _defaultLocale != null && !string.IsNullOrEmpty(_defaultLocale.NativeName)
-                    ? _defaultLocale.NativeName
-                    : "Default";
-                _defaultLocaleValueLabel = new GUIContent($"{localeName} Value");
+                    string localeName = _defaultLocale != null && !string.IsNullOrEmpty(_defaultLocale.NativeName)
+                        ? _defaultLocale.NativeName
+                        : "Default";
+                    _defaultLocaleValueLabel = new GUIContent($"{localeName} Value");
+                }
             }
 
             // Resolve the registered custom editor for this asset type (e.g. LocalizedStringEditor).
@@ -581,6 +584,22 @@ namespace TimboJimboEditor.Localization
             {
                 DestroyImmediate(created);
             }
+        }
+
+        private static SerializedProperty FindDefaultLocalePair(SerializedProperty valuesProperty, LocalizationLocale defaultLocale)
+        {
+            if (valuesProperty == null || defaultLocale == null)
+                return null;
+
+            for (int i = 0; i < valuesProperty.arraySize; i++)
+            {
+                SerializedProperty element = valuesProperty.GetArrayElementAtIndex(i);
+                SerializedProperty localeProperty = element.FindPropertyRelative(PairLocaleFieldName);
+                if (localeProperty != null && localeProperty.objectReferenceValue == defaultLocale)
+                    return element;
+            }
+
+            return null;
         }
 
         private void OnGUI()

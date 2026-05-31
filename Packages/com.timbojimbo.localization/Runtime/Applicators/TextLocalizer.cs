@@ -8,6 +8,7 @@ using UnityEngine.Serialization;
 namespace TimboJimbo.Localization.Applicators
 {
     [ExecuteAlways]
+    [DisallowMultipleComponent]
     public abstract class TextLocalizer : MonoBehaviour, ILocalizationChangeListener, ISerializationCallbackReceiver
     {
         public LocalizedString LocalizedString;

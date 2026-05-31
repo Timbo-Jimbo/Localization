@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace TimboJimbo.Localization.Applicators
 {
+    [RequireComponent(typeof(TextMeshProUGUI))]
     public class TMPTextLocalizer : TextLocalizer, ITextPreprocessor
     {
         public TextMeshProUGUI Target

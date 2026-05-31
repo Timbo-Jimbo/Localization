@@ -48,7 +48,7 @@ namespace TimboJimbo.Localization
         internal override void SyncWithProjectLocales(bool removeEntriesWithMissingLocales = false)
         {
             if(LocalizationSettings.ActiveAsset == null) return;
-            
+
             #if UNITY_EDITOR
             UnityEditor.Undo.RecordObject(this, "Sync Localized Value with Project Locales");
             #endif
@@ -68,7 +68,7 @@ namespace TimboJimbo.Localization
                         Values.Add(new LocaleValuePair<T>()
                         {
                             Locale = locale,
-                            Value = NonNullFallbackValue.ForType<T>()
+                            Value = default
                         });
                         changed = true;
                     }

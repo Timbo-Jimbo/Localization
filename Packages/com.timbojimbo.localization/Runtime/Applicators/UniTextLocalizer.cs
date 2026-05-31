@@ -4,6 +4,7 @@ using LightSide;
 
 namespace TimboJimbo.Localization.Applicators
 {
+    [RequireComponent(typeof(UniText))]
     public class UniTextLocalizer : TextLocalizer
     {
         public UniText Target;

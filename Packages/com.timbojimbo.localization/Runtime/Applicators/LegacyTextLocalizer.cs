@@ -1,5 +1,8 @@
+using UnityEngine;
+
 namespace TimboJimbo.Localization.Applicators
 {
+    [RequireComponent(typeof(UnityEngine.UI.Text))]
     public class LegacyTextLocalizer : TextLocalizer
     {
         public UnityEngine.UI.Text Target;
