@@ -1,1 +1,0 @@
-A simple localization package for Unity with a built in AI Transation tool.
