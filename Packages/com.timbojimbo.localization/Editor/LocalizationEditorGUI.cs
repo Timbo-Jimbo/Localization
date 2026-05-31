@@ -72,7 +72,10 @@ namespace TimboJimboEditor.Localization
                     EditorStyles.foldout.Draw(arrowRect, GUIContent.none, false, false, expanded, false);
                 }
 
-                drawContent?.Invoke();
+                using (new GUILayout.HorizontalScope(GUILayout.MinHeight(EditorGUIUtility.singleLineHeight + 2)))
+                {
+                    drawContent?.Invoke();
+                }
             
                 // Detect a click on the row. Inner controls (kebab buttons etc.) get to
                 // consume the event first; if they did, evt.type will be Used here.
@@ -128,14 +131,6 @@ namespace TimboJimboEditor.Localization
                 : new GUIContent(label, icon.image, icon.tooltip);
 
             return GUILayout.Button(content, Styles.GhostIconStyle, GUILayout.ExpandWidth(false));
-        }
-
-        public static void DrawSeparator()
-        {
-            EditorGUILayout.Space(6f);
-            Rect rect = GUILayoutUtility.GetRect(1f, 1f, GUILayout.ExpandWidth(true));
-            EditorGUI.DrawRect(rect, Styles.SeparatorColor);
-            EditorGUILayout.Space(2f);
         }
 
         public static void ButtonGroup(

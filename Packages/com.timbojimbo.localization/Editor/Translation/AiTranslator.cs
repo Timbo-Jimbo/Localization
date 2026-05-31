@@ -35,7 +35,6 @@ namespace TimboJimboEditor.Localization.Translations
         [SerializeField]
         private string _systemInstructions;
 
-        [Header("OpenAI")]
         [Tooltip("OpenAI model used for translation requests.")]
         [SerializeField]
         private string _model = DefaultOpenAiModel;
@@ -52,6 +51,7 @@ namespace TimboJimboEditor.Localization.Translations
         [Tooltip("Sampling temperature. Lower values are usually better for deterministic translations.")]
         [Range(0f, 2f)]
         [SerializeField]
+        
         private float _temperature = 0.2f;
 
         [NonSerialized]

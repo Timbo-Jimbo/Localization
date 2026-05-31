@@ -7,15 +7,32 @@ namespace TimboJimboEditor.Localization.Translations
     public sealed class AiTranslatorEditor : Editor
     {
         private string _apiKeyInput;
+        private bool _showGeneralSection = true;
+        private bool _showApiKeySection = true;
         private bool _showDebugHistory = true;
         private int _expandedDebugRecordIndex = -1;
 
+        private SerializedProperty _glossariesProperty;
+        private SerializedProperty _contextBlocksProperty;
+        private SerializedProperty _systemInstructionsProperty;
+        private SerializedProperty _apiBaseUrlProperty;
+        private SerializedProperty _temperatureProperty;
+        private SerializedProperty _modelProperty;
+        private SerializedProperty _timeoutSecondsProperty;
         private AiTranslator Translator => (AiTranslator)target;
 
         private void OnEnable()
         {
             _apiKeyInput = AiTranslator.GetOpenAiApiKey(Translator);
             Translator.TranslationProgressed += OnTranslationProgressed;
+
+            _glossariesProperty = serializedObject.FindProperty("_glossaries");
+            _contextBlocksProperty = serializedObject.FindProperty("_contextBlocks");
+            _systemInstructionsProperty = serializedObject.FindProperty("_systemInstructions");
+            _apiBaseUrlProperty = serializedObject.FindProperty("_apiBaseUrl");
+            _temperatureProperty = serializedObject.FindProperty("_temperature");
+            _modelProperty = serializedObject.FindProperty("_model");
+            _timeoutSecondsProperty = serializedObject.FindProperty("_timeoutSeconds");
         }
 
         private void OnDisable()
@@ -32,132 +49,154 @@ namespace TimboJimboEditor.Localization.Translations
         {
             serializedObject.Update();
 
-            DrawPropertiesExcluding(serializedObject, "m_Script");
-
-            EditorGUILayout.Space(10f);
-            LocalizationEditorGUI.DrawSeparator();
-            DrawDefaultTranslatorSection();
-
-            EditorGUILayout.Space(10f);
-            LocalizationEditorGUI.DrawSeparator();
-            DrawApiKeySection();
-
-            EditorGUILayout.Space(10f);
-            LocalizationEditorGUI.DrawSeparator();
+            DrawGeneralSection();
+            DrawApiConfigSection();
             DrawDebugHistorySection();
 
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawDefaultTranslatorSection()
+        private void DrawGeneralSection()
         {
-            AiTranslator translator = Translator;
-            AiTranslator defaultTranslator = AiTranslator.GetDefaultTranslator();
+            LocalizationEditorGUI.DrawFoldout(
+                ref _showGeneralSection,
+                () => {
+                    GUILayout.Label("General", LocalizationEditorGUI.RowTitleStyle);
+                    GUILayout.FlexibleSpace();
+                    var isDefaultTranslator = target is AiTranslator translator && translator == AiTranslator.GetDefaultTranslator();
 
-            GUILayout.Label("Default Translator", LocalizationEditorGUI.HeaderStyle);
-            EditorGUILayout.LabelField(
-                "Used by the plain Translate action when multiple translators exist.",
-                LocalizationEditorGUI.RowSubtitleStyle);
+                    if (isDefaultTranslator)
+                        GUILayout.Label("Default Translator", LocalizationEditorGUI.DefaultTagStyle);
+                    
+                    if(LocalizationEditorGUI.KebabMenuButton())
+                    {
+                        var menu = new GenericMenu();
+                        if(isDefaultTranslator)
+                        {
+                            menu.AddDisabledItem(new GUIContent("Set as Default Translator"));
+                        }
+                        else
+                        {
+                            menu.AddItem(new GUIContent("Set as Default Translator"), false, () => AiTranslator.SetDefaultTranslator(Translator));
+                        }
+                        menu.ShowAsContext();
+                    }
+                },
+                onToggle: toggle => _showGeneralSection = toggle);
+
+            if (!_showGeneralSection)
+                return;
+
+            EditorGUILayout.PropertyField(_systemInstructionsProperty);
+            EditorGUILayout.PropertyField(_glossariesProperty, true);
+            EditorGUILayout.PropertyField(_contextBlocksProperty, true);
+
+            GUILayout.Space(4f);
+        }
+
+        private void DrawApiConfigSection()
+        {
+            LocalizationEditorGUI.DrawFoldout(
+                ref _showApiKeySection,
+                () => {
+                    var isMissingApiKey = string.IsNullOrEmpty(_apiKeyInput);
+                    var warningIcon = EditorGUIUtility.IconContent("warning").image;
+                    var titleContent = new GUIContent("API Configuration", "Configure the API key and other settings for this translator. An API key is required to use this translator.");
+                    var subtitleContent = new GUIContent(isMissingApiKey ? "API Key missing" : "API Key configured");
+                    
+                    if (isMissingApiKey)
+                        titleContent.image = warningIcon;
+
+                    GUILayout.Label(titleContent, LocalizationEditorGUI.RowTitleStyle, GUILayout.ExpandWidth(false));
+                    GUILayout.Space(6f);
+                    GUILayout.Label(subtitleContent, LocalizationEditorGUI.RowSubtitleStyle, GUILayout.ExpandWidth(false));
+
+                    GUILayout.FlexibleSpace();
+                },
+                onToggle: toggle => _showApiKeySection = toggle);
+
+            if (!_showApiKeySection)
+                return;
+
+            //api key:
 
             EditorGUILayout.Space(4f);
 
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                using (new EditorGUI.DisabledScope(AiTranslator.IsDefaultTranslator(translator)))
-                {
-                    if (GUILayout.Button("Use This Translator As Default"))
-                    {
-                        AiTranslator.SetDefaultTranslator(translator);
-                        Repaint();
-                    }
-                }
-
-                using (new EditorGUI.DisabledScope(defaultTranslator == null))
-                {
-                    if (GUILayout.Button("Clear", GUILayout.Width(64f)))
-                    {
-                        AiTranslator.ClearDefaultTranslator();
-                        Repaint();
-                    }
-                }
-            }
-        }
-
-        private void DrawApiKeySection()
-        {
-            GUILayout.Label("OpenAI API Key", LocalizationEditorGUI.HeaderStyle);
-            EditorGUILayout.LabelField(
-                "Stored in EditorPrefs only. It is not saved into this translator asset.",
-                LocalizationEditorGUI.RowSubtitleStyle);
-
-            EditorGUILayout.Space(4f);
+            EditorGUILayout.PropertyField(_apiBaseUrlProperty);
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                _apiKeyInput = EditorGUILayout.PasswordField("API Key", _apiKeyInput ?? string.Empty);
-                if (GUILayout.Button("Save", GUILayout.Width(56f)))
+                EditorGUILayout.PrefixLabel("Api Key", EditorStyles.label);
+                
+                using (new EditorGUILayout.VerticalScope())
                 {
-                    SaveApiKey();
-                }
-            }
-
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.FlexibleSpace();
-                using (new EditorGUI.DisabledScope(!AiTranslator.HasOpenAiApiKey(Translator) && string.IsNullOrEmpty(_apiKeyInput)))
-                {
-                    if (GUILayout.Button("Clear API Key", GUILayout.Width(120f)))
+                    using (new EditorGUILayout.HorizontalScope())
                     {
-                        ClearApiKey();
+                        GUI.SetNextControlName("ApiKeyInputField");
+                        var result = EditorGUILayout.TextField(_apiKeyInput);
+                        var textFieldIsFocused = GUI.GetNameOfFocusedControl() == "ApiKeyInputField";
+                        var lastRect = GUILayoutUtility.GetLastRect();
+                        if (Event.current.type == EventType.Repaint && !textFieldIsFocused)
+                        {
+                            EditorStyles.textField.Draw(lastRect, new GUIContent(new string('*', Mathf.Min(_apiKeyInput.Length, 60))), false, false, false, false);
+                        }
+
+                        if(result != _apiKeyInput && textFieldIsFocused)
+                        {
+                            _apiKeyInput = result;
+                            AiTranslator.SetOpenAiApiKey(Translator, _apiKeyInput);
+                        }
+
+                        using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(_apiKeyInput)))
+                        {
+                            if (GUILayout.Button("Clear"))
+                            {
+                                _apiKeyInput = string.Empty;
+                                AiTranslator.SetOpenAiApiKey(Translator, _apiKeyInput);
+                            }
+                        }
                     }
+
+                    EditorGUILayout.HelpBox("Your API key is stored in EditorPrefs on a per-machine basis and is not saved in this asset.", MessageType.Info);
                 }
             }
 
-            EditorGUILayout.Space(4f);
-            EditorGUILayout.HelpBox("Translation progress is exposed via TranslationProgressed, and LocalizedString translation requests are surfaced through the editor job system and Unity background tasks.", MessageType.Info);
-        }
+            EditorGUILayout.PropertyField(_modelProperty);
+            EditorGUILayout.PropertyField(_temperatureProperty);
+            EditorGUILayout.PropertyField(_timeoutSecondsProperty);
 
-        private void SaveApiKey()
-        {
-            AiTranslator.SetOpenAiApiKey(Translator, _apiKeyInput);
-            _apiKeyInput = AiTranslator.GetOpenAiApiKey(Translator);
-            GUI.FocusControl(null);
-        }
-
-        private void ClearApiKey()
-        {
-            AiTranslator.ClearOpenAiApiKey(Translator);
-            _apiKeyInput = string.Empty;
-            GUI.FocusControl(null);
+            GUILayout.Space(4f);
         }
 
         private void DrawDebugHistorySection()
         {
             AiTranslator translator = Translator;
 
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                _showDebugHistory = EditorGUILayout.Foldout(_showDebugHistory, "Request / Response Debug History", true);
-                GUILayout.FlexibleSpace();
+            LocalizationEditorGUI.DrawFoldout(
+                ref _showDebugHistory,
+                () => {
+                    GUILayout.Label("Request / Response History", LocalizationEditorGUI.HeaderStyle);
+                    GUILayout.FlexibleSpace();
 
-                using (new EditorGUI.DisabledScope(translator.DebugHistory.Count == 0))
-                {
-                    if (GUILayout.Button("Clear", EditorStyles.miniButton, GUILayout.Width(56f)))
+                    if (LocalizationEditorGUI.KebabMenuButton())
                     {
-                        translator.ClearDebugHistory();
-                        _expandedDebugRecordIndex = -1;
-                        Repaint();
+                        var menu = new GenericMenu();
+                        menu.AddItem(new GUIContent("Clear History"), false, () =>
+                        {
+                            translator.ClearDebugHistory();
+                            _expandedDebugRecordIndex = -1;
+                            Repaint();
+                        });
+                        menu.ShowAsContext();
                     }
-                }
-            }
+                },
+                onToggle: toggle => _showDebugHistory = toggle);
 
             if (!_showDebugHistory)
-            {
                 return;
-            }
 
             EditorGUILayout.LabelField(
-                "In-memory only. This debug history is not serialized into the AiTranslator asset.",
+                "This history is for debugging purposes and is not saved in this asset.",
                 LocalizationEditorGUI.RowSubtitleStyle);
 
             if (translator.DebugHistory.Count == 0)
