@@ -9,17 +9,17 @@ namespace TimboJimboEditor.Localization
     [CanEditMultipleObjects]
     public sealed class LocalizedSpriteEditor : LocalizedValueEditor
     {
-        public override bool TrySeedDefaultValueFromTarget(GameObject target, LocalizationLocale locale, SerializedProperty valueProperty)
+        public override bool TryFindAndSeedDefaultValue(GameObject context, LocalizationLocale locale, SerializedProperty targetToSeed)
         {
-            if (target.TryGetComponent(out Image image))
+            if (context.TryGetComponent(out Image image))
             {
-                valueProperty.objectReferenceValue = image.sprite;
+                targetToSeed.objectReferenceValue = image.sprite;
                 return true;
             }
 
-            if (target.TryGetComponent(out SpriteRenderer spriteRenderer))
+            if (context.TryGetComponent(out SpriteRenderer spriteRenderer))
             {
-                valueProperty.objectReferenceValue = spriteRenderer.sprite;
+                targetToSeed.objectReferenceValue = spriteRenderer.sprite;
                 return true;
             }
             

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TimboJimbo.Localization;
 using TimboJimbo.Localization.StringFormatters;
 using UnityEditor;
 using UnityEngine;
@@ -17,9 +18,9 @@ namespace TimboJimboEditor.Localization
         private const float TranslatingPulseFrequency = 1.5f;
         private const float TranslatingPulseMinAlpha = 0.35f;
 
-        public static PulseScopeHandle PulseScope(bool pulse, Action repaintFn)
+        public static PulseScopeHandle PulseScope(bool pulse)
         {
-            return new PulseScopeHandle(pulse, repaintFn);
+            return new PulseScopeHandle(pulse);
         }
 
         public static void DrawFoldout(
@@ -106,7 +107,7 @@ namespace TimboJimboEditor.Localization
             GUI.color = new Color(1f, 1f, 1f, 0.5f);
             GUI.Label(rect, icon);
             GUI.color = prevColor;
-            HandleUtility.Repaint();
+            RepaintEditors();
         }
 
 
@@ -179,9 +180,9 @@ namespace TimboJimboEditor.Localization
             }
         }
 
-        public static string DrawFormatTextArea(string controlKey, string value, float minHeight)
+        public static string DrawFormatTextArea(string value, float minHeight)
         {
-            return FormatTextAreaGUI.Draw(controlKey, value, minHeight);
+            return FormatTextAreaGUI.Draw(value, minHeight);
         }
 
         private static class FormatTextAreaGUI
@@ -195,24 +196,19 @@ namespace TimboJimboEditor.Localization
                 new Color(0.65f, 0.35f, 1.00f, 0.85f),
             };
 
-            private static readonly Dictionary<string, Vector2> _scrollPositions = new();
-
             /// <summary>
             /// Layout variant. Draws an expanding text area inside a scroll view of the given
             /// minimum height. Overlay highlights are aligned automatically because the text
             /// area itself never scrolls — the surrounding scroll view does.
             /// </summary>
-            public static string Draw(string controlKey, string value, float minHeight)
+            public static string Draw(string value, float minHeight)
             {
                 string text = value ?? string.Empty;
 
-                Vector2 scroll = !string.IsNullOrEmpty(controlKey) && _scrollPositions.TryGetValue(controlKey, out Vector2 v) ? v : Vector2.zero;
-                scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.MinHeight(minHeight));
 
-                if (!string.IsNullOrEmpty(controlKey))
-                    GUI.SetNextControlName(controlKey);
-
+                GUILayout.BeginVertical(GUILayout.MinHeight(minHeight));
                 string newValue = EditorGUILayout.TextArea(text, Styles.TextAreaStyle, GUILayout.ExpandHeight(true));
+                GUILayout.EndVertical();
                 
                 if (Event.current.type == EventType.Repaint)
                 {
@@ -220,9 +216,6 @@ namespace TimboJimboEditor.Localization
                     DrawOverlay(textAreaRect, newValue);
                 }
 
-                EditorGUILayout.EndScrollView();
-                if (!string.IsNullOrEmpty(controlKey))
-                    _scrollPositions[controlKey] = scroll;
                 return newValue;
 
                 void DrawOverlay(Rect textAreaRect, string overlayText)
@@ -360,6 +353,14 @@ namespace TimboJimboEditor.Localization
                         }
                     }
                 }
+            }
+        }
+        
+        private static void RepaintEditors()
+        {
+            foreach (var item in ActiveEditorTracker.sharedTracker.activeEditors)
+            {
+                item.Repaint();
             }
         }
         
@@ -533,13 +534,11 @@ namespace TimboJimboEditor.Localization
         {
             private readonly bool _pulse;
             private readonly Color _previousColor;
-            private readonly Action _repaintRequest;
 
-            public PulseScopeHandle(bool pulse, Action repaintRequest)
+            public PulseScopeHandle(bool pulse)
             {
                 _pulse = pulse;
                 _previousColor = GUI.color;
-                _repaintRequest = repaintRequest;
 
                 if(!pulse) return;
 
@@ -555,7 +554,7 @@ namespace TimboJimboEditor.Localization
                 if (!_pulse) return;
 
                 GUI.color = _previousColor;
-                _repaintRequest?.Invoke();
+                RepaintEditors();
             }
         }
         

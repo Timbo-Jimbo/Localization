@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -125,7 +124,7 @@ namespace TimboJimboEditor.Localization
             SerializedProperty valueProperty = elementProperty.FindPropertyRelative(ValuePropertyName);
             LocalizationLocale defaultLocale = localeProperty != null ? localeProperty.objectReferenceValue as LocalizationLocale : null;
 
-            DrawInlineTitleSubtitle(GetRowTitle(defaultLocale), GetRowSubtitle(defaultLocale));
+            DrawRowHeaderTitleArea(defaultLocale, valueProperty);
             EditorGUILayout.Space(2f);
             OnLocaleValueGUI(defaultLocale, valueProperty);
         }
@@ -228,33 +227,17 @@ namespace TimboJimboEditor.Localization
 
         private void DrawRowHeaderContent(LocalizationLocale locale, SerializedProperty valueProperty)
         {
-            DrawInlineTitleSubtitle(GetRowTitle(locale), GetRowSubtitle(locale));
-            
+            DrawRowHeaderTitleArea(locale, valueProperty);
             GUILayout.FlexibleSpace();
-
-            if (!valueProperty.hasMultipleDifferentValues && target is LocalizedValue localizedValue && !localizedValue.HasMeaningfulValueForLocale(locale))
-                GUILayout.Label("Missing", LocalizationEditorGUI.MissingTagStyle, GUILayout.Width(TagWidth));
-            else
-                GUILayout.Space(TagWidth);
-
-            DrawRowMenuButton(locale, valueProperty);
+            DrawRowHeaderMenuArea(locale, valueProperty);
         }
 
-        private void DrawRowMenuButton(LocalizationLocale locale, SerializedProperty valueProperty)
-        {
-            if(!ShouldShowLocaleMenuButton(locale)) return;
 
-        
-            if (LocalizationEditorGUI.DrawKebabMenu())
-            {
-                GenericMenu menu = new();
-                BuildLocaleMenu(menu, locale, valueProperty);
-                menu.ShowAsContext();
-            }
-        }
-
-        private void DrawInlineTitleSubtitle(string title, string subtitle)
+        protected virtual void DrawRowHeaderTitleArea(LocalizationLocale locale, SerializedProperty valueProperty)
         {
+            var title = GetRowTitle(locale);
+            var subtitle = GetRowSubtitle(locale);
+
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Label(title, LocalizationEditorGUI.RowTitleStyle, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true));
@@ -266,14 +249,32 @@ namespace TimboJimboEditor.Localization
             }
         }
 
-        protected virtual bool ShouldShowLocaleMenuButton(LocalizationLocale locale) => false;
+        protected virtual void DrawRowHeaderMenuArea(LocalizationLocale locale, SerializedProperty valueProperty)
+        {
+            if (!valueProperty.hasMultipleDifferentValues && target is LocalizedValue localizedValue && !localizedValue.HasMeaningfulValueForLocale(locale))
+                GUILayout.Label("Missing", LocalizationEditorGUI.MissingTagStyle, GUILayout.Width(TagWidth));
+            else
+                GUILayout.Space(TagWidth);
+
+            DrawRowHeaderMenuButton(locale, valueProperty);
+        }
+        
+        protected void DrawRowHeaderMenuButton(LocalizationLocale locale, SerializedProperty valueProperty)
+        {
+            if (LocalizationEditorGUI.DrawKebabMenu())
+            {
+                GenericMenu menu = new();
+                BuildRowHeaderMenu(menu, locale, valueProperty);
+                menu.ShowAsContext();
+            }
+        }
 
         /// <summary>
         /// Populate the per-locale context menu. Base implementation adds a "Clear" item.
-        /// Override and call <c>base.BuildLocaleMenu</c> to insert items around the default.
+        /// Override and call <c>base.BuildRowHeaderMenu</c> to insert items around the default.
         /// Returning without adding any items will hide the kebab button entirely.
         /// </summary>
-        protected virtual void BuildLocaleMenu(GenericMenu menu, LocalizationLocale locale, SerializedProperty valueProperty)
+        protected virtual void BuildRowHeaderMenu(GenericMenu menu, LocalizationLocale locale, SerializedProperty valueProperty)
         {
             if (locale == null) return;
             string clearLabel = IsEditingMultipleObjects ? "Clear For Selection" : "Clear";
@@ -299,7 +300,7 @@ namespace TimboJimboEditor.Localization
             }
         }
 
-        public virtual bool TrySeedDefaultValueFromTarget(GameObject target, LocalizationLocale locale, SerializedProperty value)
+        public virtual bool TryFindAndSeedDefaultValue(GameObject context, LocalizationLocale locale, SerializedProperty targetToSeed)
         {
             return false;
         }

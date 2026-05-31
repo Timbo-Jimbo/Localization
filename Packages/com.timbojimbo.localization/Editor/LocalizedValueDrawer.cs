@@ -30,7 +30,7 @@ namespace TimboJimboEditor.Localization
             if(!property.hasMultipleDifferentValues && property.objectReferenceValue is LocalizedString localizedValue)
                 isTranslating = TranslationJobs.GetInspectorState(new []{ localizedValue }).HasRelevantJobs;
 
-            using (LocalizationEditorGUI.PulseScope(pulse: isTranslating, repaintFn: HandleUtility.Repaint))
+            using (LocalizationEditorGUI.PulseScope(pulse: isTranslating))
             {
                 bool previousShowMixedValue = EditorGUI.showMixedValue;
                 EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
@@ -41,9 +41,9 @@ namespace TimboJimboEditor.Localization
 
                 if (isTranslating)
                 {
-                    float spinnerSize = EditorGUIUtility.singleLineHeight;
+                    float spinnerSize = EditorGUIUtility.singleLineHeight + 4f;
                     Rect spinnerRect = new(
-                        position.xMax - ObjectPickerButtonWidth - spinnerSize - 2f,
+                        position.xMin + EditorGUIUtility.labelWidth - spinnerSize,
                         position.y + (EditorGUIUtility.singleLineHeight - spinnerSize) * 0.5f,
                         spinnerSize,
                         spinnerSize);
@@ -545,7 +545,7 @@ namespace TimboJimboEditor.Localization
                 // seed some values with something relevant
                 if(TryGetSingleTargetGo(out GameObject targetGo))
                 {
-                    if(_assetEditor.TrySeedDefaultValueFromTarget(targetGo, _defaultLocale, _defaultLocaleValueProperty))
+                    if(_assetEditor.TryFindAndSeedDefaultValue(targetGo, _defaultLocale, _defaultLocaleValueProperty))
                     {
                         _assetSerialized.ApplyModifiedPropertiesWithoutUndo();
 

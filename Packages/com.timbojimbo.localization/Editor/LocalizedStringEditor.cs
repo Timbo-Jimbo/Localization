@@ -139,17 +139,30 @@ namespace TimboJimboEditor.Localization
             }
         }
 
-        protected override bool ShouldShowLocaleMenuButton(LocalizationLocale locale)
+        protected override void DrawRowHeaderMenuArea(LocalizationLocale locale, SerializedProperty valueProperty)
         {
-            return locale != LocalizationSettings.DefaultLocale;
+            if(_jobState.TryGetLocaleState(locale, out TranslationJobs.LocalePresentationState localeState) && localeState.IsTranslating)
+            {
+                var spinnerRect = GUILayoutUtility.GetRect(EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
+                // pad it out a bit
+                spinnerRect.xMin -= 2f;
+                spinnerRect.yMin -= 2f;
+                spinnerRect.xMax += 2f;
+                spinnerRect.yMax += 2f;
+
+                LocalizationEditorGUI.DrawSpinner(spinnerRect);
+                return;
+            }
+
+            base.DrawRowHeaderMenuArea(locale, valueProperty);
         }
 
-        protected override void BuildLocaleMenu(GenericMenu menu, LocalizationLocale locale, SerializedProperty valueProperty)
+        protected override void BuildRowHeaderMenu(GenericMenu menu, LocalizationLocale locale, SerializedProperty valueProperty)
         {
             string translateLabel = IsEditingMultipleObjects ? "Translate For Selection" : "Translate";
             AddTranslationMenuItem(menu, translateLabel, TranslationJobScope.SingleLocale(locale));
             menu.AddSeparator(string.Empty);
-            base.BuildLocaleMenu(menu, locale, valueProperty);
+            base.BuildRowHeaderMenu(menu, locale, valueProperty);
         }
 
         public override void OnLocaleValueGUI(LocalizationLocale locale, SerializedProperty valueProperty)
@@ -157,7 +170,7 @@ namespace TimboJimboEditor.Localization
             bool hasLocaleState = _jobState.TryGetLocaleState(locale, out TranslationJobs.LocalePresentationState localeState);
             bool isTranslating = hasLocaleState && localeState.IsTranslating;
 
-            using(LocalizationEditorGUI.PulseScope(pulse: isTranslating, repaintFn: Repaint))
+            using(LocalizationEditorGUI.PulseScope(pulse: isTranslating))
             {
                 float height = EditorGUIUtility.singleLineHeight * (locale == LocalizationSettings.DefaultLocale ? 8f : 4f) + 4f;
 
@@ -165,7 +178,7 @@ namespace TimboJimboEditor.Localization
                 {
                     if (isTranslating && !string.IsNullOrEmpty(localeState.PartialText))
                     {
-                        LocalizationEditorGUI.DrawFormatTextArea(GetTextAreaControlKey(valueProperty), localeState.PartialText, height);
+                        LocalizationEditorGUI.DrawFormatTextArea(localeState.PartialText, height);
                     }
                     else
                     {
@@ -175,26 +188,26 @@ namespace TimboJimboEditor.Localization
             }
         }
 
-        public override bool TrySeedDefaultValueFromTarget(GameObject target, LocalizationLocale locale, SerializedProperty value)
+        public override bool TryFindAndSeedDefaultValue(GameObject context, LocalizationLocale locale, SerializedProperty targetToSeed)
         {
-            if (target.TryGetComponent(out Text textComp))
+            if (context.TryGetComponent(out Text textComp))
             {
-                value.stringValue = textComp.text;
+                targetToSeed.stringValue = textComp.text;
                 return true;
             }
             
 #if TJ_LOCALIZATION_TMP_SUPPORT
-            if (target.TryGetComponent(out TMPro.TextMeshProUGUI tmpTextComp))
+            if (context.TryGetComponent(out TMPro.TextMeshProUGUI tmpTextComp))
             {
-                value.stringValue = tmpTextComp.text;
+                targetToSeed.stringValue = tmpTextComp.text;
                 return true;
             }
 #endif
 
 #if TJ_LOCALIZATION_UNITEXT_SUPPORT
-            if (target.TryGetComponent(out LightSide.UniText uniTextComp))
+            if (context.TryGetComponent(out LightSide.UniText uniTextComp))
             {
-                value.stringValue = uniTextComp.Text;
+                targetToSeed.stringValue = uniTextComp.Text;
                 return true;
             }
 #endif
@@ -204,11 +217,10 @@ namespace TimboJimboEditor.Localization
 
         private static void DrawStringTextArea(SerializedProperty property, float minHeight)
         {
-
             using (new EditorGUI.MixedValueScope(property.hasMultipleDifferentValues))
             {
                 EditorGUI.BeginChangeCheck();
-                string newValue = LocalizationEditorGUI.DrawFormatTextArea(GetTextAreaControlKey(property), property.stringValue ?? string.Empty, minHeight);
+                string newValue = LocalizationEditorGUI.DrawFormatTextArea(property.stringValue ?? string.Empty, minHeight);
                 bool changed = EditorGUI.EndChangeCheck();
 
                 if (changed)
@@ -218,14 +230,6 @@ namespace TimboJimboEditor.Localization
                     LocalizationSettings.RaiseLocalizedValueChanged(property.serializedObject.targetObject as LocalizedValue);
                 }
             }
-        }
-
-        private static string GetTextAreaControlKey(SerializedProperty property)
-        {
-            int targetId = property.serializedObject.targetObject != null
-                ? property.serializedObject.targetObject.GetInstanceID()
-                : 0;
-            return $"LocalizedValueEditor.{targetId}.{property.propertyPath}";
         }
 
         // ---------------------------------------------------------------------
