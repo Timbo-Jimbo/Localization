@@ -1,6 +1,6 @@
 using System;
 using Cysharp.Text;
-using UnityEditor;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace TimboJimbo.Localization.StringFormatters
@@ -18,7 +18,12 @@ namespace TimboJimbo.Localization.StringFormatters
         /// <summary>
         /// Registers plural formatting for supported numeric types.
         /// </summary>
-        [InitializeOnLoadMethod]
+
+        #if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+        #else
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        #endif
         public static void InitOnLoad()
         {
             ZStringUtility.AppendTryFormat((decimal value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format) =>

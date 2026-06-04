@@ -1,3 +1,7 @@
+## [1.7.0] - 2026-06-01
+
+- Fixed some Editor script usage in runtime code preventing builds
+
 ## [1.6.0] - 2026-05-31
 
 - Updated repo layout so that the repository is just a package and not a Unity Project + Package combo.

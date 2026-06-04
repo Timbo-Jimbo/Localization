@@ -1,6 +1,6 @@
 using System;
 using System.Globalization;
-using UnityEditor;
+using UnityEngine;
 
 namespace TimboJimbo.Localization.StringFormatters
 {
@@ -14,7 +14,12 @@ namespace TimboJimbo.Localization.StringFormatters
         public static ReadOnlySpan<char> Prefix => "query";
         public static ReadOnlySpan<char> ShortPrefix => "q";
 
-        [InitializeOnLoadMethod]
+
+        #if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+        #else
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        #endif
         public static void InitOnLoad()
         {
             ZStringUtility.AppendTryFormat((string value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format) =>
