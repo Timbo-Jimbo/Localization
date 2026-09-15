@@ -1,3 +1,9 @@
+## [1.7.1] - 2026-09-15
+
+### Fixed
+
+- Replaced deprecated `GetInstanceID` editor usage with Unity's `GetEntityId` API, restoring compatibility with current Unity versions
+
 ## [1.7.0] - 2026-06-01
 
 - Fixed some Editor script usage in runtime code preventing builds

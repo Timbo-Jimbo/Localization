@@ -259,7 +259,7 @@ namespace TimboJimboEditor.Localization.Translations
         {
             Object firstTarget = serializedObject.targetObject;
             string assetPath = firstTarget != null ? AssetDatabase.GetAssetPath(firstTarget) : null;
-            string guid = string.IsNullOrEmpty(assetPath) ? (firstTarget != null ? firstTarget.GetInstanceID().ToString() : "none") : AssetDatabase.AssetPathToGUID(assetPath);
+            string guid = string.IsNullOrEmpty(assetPath) ? (firstTarget != null ? firstTarget.GetEntityId().ToString() : "none") : AssetDatabase.AssetPathToGUID(assetPath);
             return FoldoutStateKeyPrefix + guid + "." + index;
         }
     }

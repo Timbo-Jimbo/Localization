@@ -152,12 +152,12 @@ namespace TimboJimboEditor.Localization.Translations
                 return default;
             }
 
-            var selectedIds = new HashSet<int>();
+            var selectedIds = new HashSet<EntityId>();
             for (int i = 0; i < selectedTargets.Length; i++)
             {
                 if (selectedTargets[i] is LocalizedString localizedString && localizedString != null)
                 {
-                    selectedIds.Add(localizedString.GetInstanceID());
+                    selectedIds.Add(localizedString.GetEntityId());
                 }
             }
 
@@ -186,7 +186,7 @@ namespace TimboJimboEditor.Localization.Translations
                     summary = job.StatusMessage;
                 }
 
-                foreach (KeyValuePair<int, TargetTranslationState> targetEntry in job.TargetStatesById)
+                foreach (KeyValuePair<EntityId, TargetTranslationState> targetEntry in job.TargetStatesById)
                 {
                     if (!selectedIds.Contains(targetEntry.Key))
                     {
@@ -308,7 +308,7 @@ namespace TimboJimboEditor.Localization.Translations
         public static bool IsTranslating(UnityEngine.Object asset)
         {
             if (asset == null || _activeJobs.Count == 0) return false;
-            int targetId = asset.GetInstanceID();
+            EntityId targetId = asset.GetEntityId();
             for (int i = 0; i < _activeJobs.Count; i++)
             {
                 if (_activeJobs[i].ContainsTarget(targetId)) return true;
@@ -330,7 +330,7 @@ namespace TimboJimboEditor.Localization.Translations
 
             for (int queueIndex = 0; queueIndex < translationQueue.Count; queueIndex++)
             {
-                int targetId = translationQueue[queueIndex].TargetId;
+                EntityId targetId = translationQueue[queueIndex].TargetId;
                 for (int jobIndex = 0; jobIndex < _activeJobs.Count; jobIndex++)
                 {
                     if (_activeJobs[jobIndex].ContainsTarget(targetId))
@@ -355,7 +355,7 @@ namespace TimboJimboEditor.Localization.Translations
                 return translationQueue;
             }
 
-            var seenTargetIds = new HashSet<int>();
+            var seenTargetIds = new HashSet<EntityId>();
             for (int targetIndex = 0; targetIndex < selectedTargets.Length; targetIndex++)
             {
                 if (selectedTargets[targetIndex] is not LocalizedString localizedString || localizedString == null)
@@ -363,7 +363,7 @@ namespace TimboJimboEditor.Localization.Translations
                     continue;
                 }
 
-                int targetId = localizedString.GetInstanceID();
+                EntityId targetId = localizedString.GetEntityId();
                 
                 if (!seenTargetIds.Add(targetId))
                     continue;
@@ -501,18 +501,18 @@ namespace TimboJimboEditor.Localization.Translations
                 StatusMessage = "Preparing translation job…";
             }
 
-            public Dictionary<int, TargetTranslationState> TargetStatesById { get; }
+            public Dictionary<EntityId, TargetTranslationState> TargetStatesById { get; }
             public float NormalizedProgress { get; private set; }
             public string StatusMessage { get; private set; }
 
-            public bool ContainsTarget(int targetId)
+            public bool ContainsTarget(EntityId targetId)
             {
                 return TargetStatesById.ContainsKey(targetId);
             }
 
-            public bool TouchesAny(HashSet<int> targetIds)
+            public bool TouchesAny(HashSet<EntityId> targetIds)
             {
-                foreach (int targetId in targetIds)
+                foreach (EntityId targetId in targetIds)
                 {
                     if (TargetStatesById.ContainsKey(targetId))
                     {
@@ -606,9 +606,9 @@ namespace TimboJimboEditor.Localization.Translations
                 }
             }
 
-            private static Dictionary<int, TargetTranslationState> BuildTargetStateMap(List<TranslationQueueItem> translationQueue)
+            private static Dictionary<EntityId, TargetTranslationState> BuildTargetStateMap(List<TranslationQueueItem> translationQueue)
             {
-                var states = new Dictionary<int, TargetTranslationState>(translationQueue.Count);
+                var states = new Dictionary<EntityId, TargetTranslationState>(translationQueue.Count);
                 for (int i = 0; i < translationQueue.Count; i++)
                 {
                     TranslationQueueItem queuedItem = translationQueue[i];
@@ -840,12 +840,12 @@ namespace TimboJimboEditor.Localization.Translations
             {
                 LocalizedString = localizedString;
                 TargetLocales = targetLocales;
-                TargetId = localizedString != null ? localizedString.GetInstanceID() : 0;
+                TargetId = localizedString != null ? localizedString.GetEntityId() : EntityId.None;
             }
 
             public LocalizedString LocalizedString { get; }
             public List<LocalizationLocale> TargetLocales { get; }
-            public int TargetId { get; }
+            public EntityId TargetId { get; }
         }
     }
     

@@ -335,7 +335,7 @@ namespace TimboJimboEditor.Localization
 
             string path = AssetDatabase.GetAssetPath(translator);
             if (string.IsNullOrEmpty(path))
-                return EscapeMenuPathSegment($"{translatorDisplayName} ({translator.GetInstanceID()})");
+                return EscapeMenuPathSegment($"{translatorDisplayName} ({translator.GetEntityId()})");
 
             return EscapeMenuPathSegment($"{translatorDisplayName} ({path})");
         }
