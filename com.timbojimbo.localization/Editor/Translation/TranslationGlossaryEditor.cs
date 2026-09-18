@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using TimboJimbo.Localization;
+using TimboJimboEditor.Core;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,8 +10,6 @@ namespace TimboJimboEditor.Localization.Translations
     public sealed class TranslationGlossaryEditor : Editor
     {
         private const string TermsPropertyName = "_terms";
-        private const string FoldoutStateKeyPrefix = "TranslationGlossaryEditor.Foldout.";
-
 
         private SerializedProperty _termsProperty;
 
@@ -98,7 +97,7 @@ namespace TimboJimboEditor.Localization.Translations
 
             bool expanded = GetEntryExpanded(index);
             bool removeClicked = false;
-            LocalizationEditorGUI.DrawFoldout(
+            FoldoutGUI.Draw(
                 ref expanded,
                 () => DrawEntryHeaderContent(termEntryProperty, ref removeClicked),
                 onToggle: toggle => SetEntryExpanded(index, toggle),
@@ -245,22 +244,7 @@ namespace TimboJimboEditor.Localization.Translations
             return ObjectNames.NicifyVariableName(termAsset.name);
         }
 
-        private bool GetEntryExpanded(int index)
-        {
-            return SessionState.GetBool(GetFoldoutKey(index), false);
-        }
-
-        private void SetEntryExpanded(int index, bool expanded)
-        {
-            SessionState.SetBool(GetFoldoutKey(index), expanded);
-        }
-
-        private string GetFoldoutKey(int index)
-        {
-            Object firstTarget = serializedObject.targetObject;
-            string assetPath = firstTarget != null ? AssetDatabase.GetAssetPath(firstTarget) : null;
-            string guid = string.IsNullOrEmpty(assetPath) ? (firstTarget != null ? firstTarget.GetEntityId().ToString() : "none") : AssetDatabase.AssetPathToGUID(assetPath);
-            return FoldoutStateKeyPrefix + guid + "." + index;
-        }
+        private bool GetEntryExpanded(int index) => FoldoutGUI.State.Get(serializedObject.targetObject, "Term." + index, false);
+        private void SetEntryExpanded(int index, bool expanded) => FoldoutGUI.State.Set(serializedObject.targetObject, "Term." + index, expanded);
     }
 }

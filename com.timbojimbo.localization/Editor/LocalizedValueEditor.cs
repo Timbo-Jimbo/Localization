@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using TimboJimboEditor.Core;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -203,7 +204,7 @@ namespace TimboJimboEditor.Localization
             LocalizationLocale locale = localeProperty != null ? localeProperty.objectReferenceValue as LocalizationLocale : null;
 
             bool expanded = GetLocaleRowExpanded(locale);
-            LocalizationEditorGUI.DrawFoldout(
+            FoldoutGUI.Draw(
                 ref expanded, 
                 () => DrawRowHeaderContent(locale, valueProperty),
                 onToggle: toggle => SetLocaleRowExpanded(locale, toggle),
@@ -283,11 +284,7 @@ namespace TimboJimboEditor.Localization
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                GUILayout.Label(title, LocalizationEditorGUI.RowTitleStyle, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true));
-
-                if (!string.IsNullOrEmpty(subtitle))
-                    GUILayout.Label(subtitle, LocalizationEditorGUI.RowSubtitleStyle, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true));
-
+                FoldoutGUI.Title(title, subtitle);
                 GUILayout.FlexibleSpace();
             }
         }

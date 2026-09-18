@@ -2,10 +2,11 @@
   "name": "com.timbojimbo.localization",
   "displayName": "Localization",
   "description": "A simple localization package for Unity with a built in AI Translation tool.",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "unity": "6000.0",
   "unityRelease": "0f1",
   "dependencies": {
+    "com.timbojimbo.core": "0.6.0",
     "com.cysharp.zstring": "2.6.0",
     "com.unity.ugui": "2.0.0"
   },    
@@ -14,7 +15,7 @@
     "url": "https://timbojimbo.com",
     "email": "hello@timbojimbo.com"
   },
-  "changelogUrl": "https://github.com/Timbo-Jimbo/Localization/blob/main/CHANGELOG.md",
+  "changelogUrl": "https://github.com/Timbo-Jimbo/Localization/blob/main/com.timbojimbo.localization/CHANGELOG.md",
   "documentationUrl": "https://github.com/Timbo-Jimbo/Localization#readme",
   "licensesUrl": "https://github.com/Timbo-Jimbo/Localization/blob/main/LICENSE"
 }

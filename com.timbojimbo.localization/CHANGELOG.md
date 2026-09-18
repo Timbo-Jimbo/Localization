@@ -1,3 +1,12 @@
+## [Unreleased]
+
+## [1.8.0] - 2026-09-18
+
+### Changed
+
+- Foldout headers, header labels and ghost buttons now come from `com.timbojimbo.core` (`FoldoutGUI`); `LocalizationEditorGUI.DrawFoldout` is removed and the remaining button/style members forward to Core. Adds a dependency on `com.timbojimbo.core` `0.6.0`
+- `CHANGELOG.md` now ships inside the package folder
+
 ## [1.7.1] - 2026-09-15
 
 ### Fixed

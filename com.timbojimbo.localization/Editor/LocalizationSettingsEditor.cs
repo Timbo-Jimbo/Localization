@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using TimboJimboEditor.Core;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -15,7 +16,6 @@ namespace TimboJimboEditor.Localization
     {
         private const string LocalesPropertyName = "_locales";
         private const string DefaultLocalePropertyName = "_defaultLocale";
-        private const string FoldoutStateKeyPrefix = "LocalizationSettingsEditor.Foldout.";
         private const float DefaultTagWidth = 60f;
         private SerializedProperty _localesProperty;
         private SerializedProperty _defaultLocaleProperty;
@@ -104,7 +104,7 @@ namespace TimboJimboEditor.Localization
 
             bool expanded = GetEntryExpanded(index);
             bool menuClicked = false;
-            LocalizationEditorGUI.DrawFoldout(
+            FoldoutGUI.Draw(
                 ref expanded,
                 () => DrawEntryHeaderContent(locale, isDefault, ref menuClicked),
                 onToggle: toggle => SetEntryExpanded(index, toggle),
@@ -138,15 +138,7 @@ namespace TimboJimboEditor.Localization
 
         private static void DrawEntryHeaderContent(LocalizationLocale locale, bool isDefault, ref bool menuClicked)
         {
-            GUILayout.Label(GetLocaleTitle(locale), LocalizationEditorGUI.RowTitleStyle, GUILayout.ExpandWidth(false));
-
-            string subtitle = GetLocaleSubtitle(locale);
-            if (!string.IsNullOrEmpty(subtitle))
-            {
-                GUILayout.Space(6f);
-                GUILayout.Label(subtitle, LocalizationEditorGUI.RowSubtitleStyle, GUILayout.ExpandWidth(false));
-            }
-
+            FoldoutGUI.Title(GetLocaleTitle(locale), GetLocaleSubtitle(locale));
             GUILayout.FlexibleSpace();
 
             if (locale == null)
@@ -391,18 +383,8 @@ namespace TimboJimboEditor.Localization
             return string.IsNullOrEmpty(code) ? null : code;
         }
 
-        private bool GetEntryExpanded(int index) => SessionState.GetBool(GetFoldoutKey(index), false);
-        private void SetEntryExpanded(int index, bool expanded) => SessionState.SetBool(GetFoldoutKey(index), expanded);
-
-        private string GetFoldoutKey(int index)
-        {
-            UnityEngine.Object firstTarget = serializedObject.targetObject;
-            string assetPath = firstTarget != null ? AssetDatabase.GetAssetPath(firstTarget) : null;
-            string guid = string.IsNullOrEmpty(assetPath)
-                ? (firstTarget != null ? firstTarget.GetEntityId().ToString() : "none")
-                : AssetDatabase.AssetPathToGUID(assetPath);
-            return FoldoutStateKeyPrefix + guid + "." + index;
-        }
+        private bool GetEntryExpanded(int index) => FoldoutGUI.State.Get(serializedObject.targetObject, "Locale." + index, false);
+        private void SetEntryExpanded(int index, bool expanded) => FoldoutGUI.State.Set(serializedObject.targetObject, "Locale." + index, expanded);
 
         private sealed class AddLocaleDropdown : AdvancedDropdown
         {

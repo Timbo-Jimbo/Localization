@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TimboJimbo.Localization.StringFormatters;
+using TimboJimboEditor.Core;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,8 +11,8 @@ namespace TimboJimboEditor.Localization
     {
         public static GUIStyle HeaderStyle => Styles.HeaderStyle;
         public static GUIStyle StatLabelStyle => Styles.StatLabelStyle;
-        public static GUIStyle RowTitleStyle => Styles.RowTitleStyle;
-        public static GUIStyle RowSubtitleStyle => Styles.RowSubtitleStyle;
+        public static GUIStyle RowTitleStyle => FoldoutGUI.TitleStyle;
+        public static GUIStyle RowSubtitleStyle => FoldoutGUI.SubtitleStyle;
         public static GUIStyle DefaultTagStyle => Styles.DefaultTagStyle;
         public static GUIStyle MissingTagStyle => Styles.MissingTagStyle;
         private const float TranslatingPulseFrequency = 1.5f;
@@ -20,85 +21,6 @@ namespace TimboJimboEditor.Localization
         public static PulseScopeHandle PulseScope(bool pulse)
         {
             return new PulseScopeHandle(pulse);
-        }
-
-        public static void DrawFoldout(
-            ref bool expanded, 
-            Action drawContent,
-            Action<bool> onToggle,
-            Action<bool> onGroupToggle = null
-        )
-        {
-            if (onGroupToggle == null)
-                onGroupToggle = onToggle;
-
-            // BeginHorizontal with a styled background paints the row behind the
-            // child controls automatically, so the content stays visible.
-            // The style's left padding already reserves space for the foldout arrow,
-            // so content begins to the right of the arrow.
-            using (var scope = new EditorGUILayout.HorizontalScope(Styles.FoldoutRowStyle, GUILayout.ExpandWidth(true)))
-            {
-                Event evt = Event.current;
-
-                // A fixed oversized bleed reliably covers the full inspector width
-                // regardless of sidebars, scroll bars, or currentViewWidth quirks.
-                const float BleedAmount = 4000f;
-                var rowRect = scope.rect;
-                Rect bleedRect = new(
-                    rowRect.x - BleedAmount,
-                    rowRect.y,
-                    rowRect.width + (BleedAmount * 2f),
-                    rowRect.height);
-
-                if (evt.type == EventType.Repaint)
-                {
-                    // Bg
-                    EditorGUI.DrawRect(bleedRect, Styles.FoldoutBackgroundColor);
-
-                    // Top border.
-                    EditorGUI.DrawRect(
-                        new Rect(bleedRect.x, rowRect.y, bleedRect.width, Styles.FoldoutTopBorderThickness),
-                        Styles.FoldoutBorderColor
-                    );
-
-                    // Foldout arrow vertically centered within the row.
-                    float arrowHeight = EditorGUIUtility.singleLineHeight;
-                    Rect arrowRect = new(
-                        rowRect.x,
-                        rowRect.y + ((rowRect.height - arrowHeight) * 0.5f),
-                        13f,
-                        arrowHeight);
-                    EditorStyles.foldout.Draw(arrowRect, GUIContent.none, false, false, expanded, false);
-                }
-
-                using (new GUILayout.HorizontalScope(GUILayout.MinHeight(EditorGUIUtility.singleLineHeight + 2)))
-                {
-                    drawContent?.Invoke();
-                }
-            
-                // Detect a click on the row. Inner controls (kebab buttons etc.) get to
-                // consume the event first; if they did, evt.type will be Used here.
-                bool toggled = false;
-                bool wasGroupToggle = false;
-                
-                if (evt.type == EventType.MouseDown && evt.button == 0 && bleedRect.Contains(evt.mousePosition))
-                {
-                    toggled = true;
-                    wasGroupToggle = evt.alt;
-                    GUI.changed = true;
-                    evt.Use();
-                }
-
-                if (toggled)
-                {
-                    expanded = !expanded;
-
-                    if (wasGroupToggle)
-                        onGroupToggle?.Invoke(expanded);
-                    else
-                        onToggle?.Invoke(expanded);
-                }
-            }
         }
 
         public static void DrawSpinner(Rect rect)
@@ -113,24 +35,10 @@ namespace TimboJimboEditor.Localization
         }
 
 
-        public static bool KebabMenuButton(string label = null) => GhostButton("_Menu", label);
-        public static bool RemoveButton(string label = null) => GhostButton("Toolbar Minus", label);
-        public static bool AddButton(string label = null) => GhostButton("Toolbar Plus", label);
-
-        /// <summary>
-        /// Draws a small icon button with a hover highlight. The icon is looked
-        /// up via <see cref="EditorGUIUtility.IconContent(string)"/>. Auto-sizes
-        /// to fit the icon (and optional label). Returns true on click.
-        /// </summary>
-        public static bool GhostButton(string iconName, string label = null)
-        {
-            GUIContent icon = EditorGUIUtility.IconContent(iconName);
-            GUIContent content = string.IsNullOrEmpty(label)
-                ? icon
-                : new GUIContent(label, icon.image, icon.tooltip);
-
-            return GUILayout.Button(content, Styles.GhostIconStyle, GUILayout.ExpandWidth(false));
-        }
+        public static bool KebabMenuButton(string label = null) => FoldoutGUI.KebabMenuButton(label);
+        public static bool RemoveButton(string label = null) => FoldoutGUI.RemoveButton(label);
+        public static bool AddButton(string label = null) => FoldoutGUI.AddButton(label);
+        public static bool GhostButton(string iconName, string label = null) => FoldoutGUI.GhostButton(iconName, label);
 
         public static void ButtonGroup(
             List<ButtonGroupEntry> buttons,
@@ -364,45 +272,26 @@ namespace TimboJimboEditor.Localization
             private static readonly Color SeparatorColorLightSkin = new(0f, 0f, 0f, 0.10f);
             private static readonly Color SubtleTextColorDarkSkin = new(0.70f, 0.70f, 0.70f, 1f);
             private static readonly Color SubtleTextColorLightSkin = new(0.35f, 0.35f, 0.35f, 1f);
-            private static readonly Color FoldoutBackgroundColorDarkSkin = new(0.19f, 0.19f, 0.19f, 1f);
-            private static readonly Color FoldoutBackgroundColorLightSkin = new(0.74f, 0.74f, 0.74f, 1f);
-            private static readonly Color FoldoutBorderColorDarkSkin = new(0f, 0f, 0f, 0.38f);
-            private static readonly Color FoldoutBorderColorLightSkin = new(0f, 0f, 0f, 0.18f);
             private static readonly Color HoverColorDarkSkin = new(1f, 1f, 1f, 0.04f);
             private static readonly Color HoverColorLightSkin = new(0f, 0f, 0f, 0.04f);
 
-            private const float FoldoutContentLeftPadding = 22f;
-            private const float FoldoutContentRightPadding = 8f;
-            private const float FoldoutVerticalPadding = 5f;
-            public const float FoldoutTopBorderThickness = 1f;
 
             private static GUIStyle _headerStyle;
             private static GUIStyle _statLabelStyle;
-            private static GUIStyle _rowTitleStyle;
-            private static GUIStyle _rowSubtitleStyle;
             private static GUIStyle _defaultTagStyle;
             private static GUIStyle _missingTagStyle;
-            private static GUIStyle _foldoutRowStyle;
-            private static GUIStyle _ghostIconStyle;
             private static GUIStyle _textAreaStyle;
             private static GUIStyle _overlayStyle;
-            private static Texture2D _foldoutBackgroundTexture;
             private static bool _stylesUseProSkin;
 
             public static Color SeparatorColor { get { Ensure(); return ForCurrentSkin(SeparatorColorDarkSkin, SeparatorColorLightSkin); } }
             public static Color SubtleTextColor { get { Ensure(); return ForCurrentSkin(SubtleTextColorDarkSkin, SubtleTextColorLightSkin); } }
-            public static Color FoldoutBackgroundColor { get { Ensure(); return ForCurrentSkin(FoldoutBackgroundColorDarkSkin, FoldoutBackgroundColorLightSkin); } }
-            public static Color FoldoutBorderColor { get { Ensure(); return ForCurrentSkin(FoldoutBorderColorDarkSkin, FoldoutBorderColorLightSkin); } }
             public static Color HoverColor { get { Ensure(); return ForCurrentSkin(HoverColorDarkSkin, HoverColorLightSkin); } }
 
             public static GUIStyle HeaderStyle { get { Ensure(); return _headerStyle; } }
             public static GUIStyle StatLabelStyle { get { Ensure(); return _statLabelStyle; } }
-            public static GUIStyle RowTitleStyle { get { Ensure(); return _rowTitleStyle; } }
-            public static GUIStyle RowSubtitleStyle { get { Ensure(); return _rowSubtitleStyle; } }
             public static GUIStyle DefaultTagStyle { get { Ensure(); return _defaultTagStyle; } }
             public static GUIStyle MissingTagStyle { get { Ensure(); return _missingTagStyle; } }
-            public static GUIStyle FoldoutRowStyle { get { Ensure(); return _foldoutRowStyle; } }
-            public static GUIStyle GhostIconStyle { get { Ensure(); return _ghostIconStyle; } }
             public static GUIStyle TextAreaStyle { get { Ensure(); return _textAreaStyle; } }
             public static GUIStyle OverlayStyle { get { Ensure(); return _overlayStyle; } }
 
@@ -423,25 +312,6 @@ namespace TimboJimboEditor.Localization
 
                 Color subtle = ForCurrentSkin(SubtleTextColorDarkSkin, SubtleTextColorLightSkin);
 
-                if (_foldoutBackgroundTexture != null)
-                    UnityEngine.Object.DestroyImmediate(_foldoutBackgroundTexture);
-
-                _foldoutBackgroundTexture = new Texture2D(1, 1) { hideFlags = HideFlags.HideAndDontSave };
-                _foldoutBackgroundTexture.SetPixel(0, 0, ForCurrentSkin(FoldoutBackgroundColorDarkSkin, FoldoutBackgroundColorLightSkin));
-                _foldoutBackgroundTexture.Apply();
-
-                _foldoutRowStyle = new GUIStyle
-                {
-                    normal = { background = _foldoutBackgroundTexture },
-                    padding = new RectOffset(
-                        (int)FoldoutContentLeftPadding,
-                        (int)FoldoutContentRightPadding,
-                        (int)(FoldoutTopBorderThickness + FoldoutVerticalPadding),
-                        (int)FoldoutVerticalPadding),
-                    margin = new RectOffset(0, 0, 0, 0),
-                    stretchWidth = true,
-                };
-
                 _headerStyle = new GUIStyle(EditorStyles.label)
                 {
                     fontSize = 13,
@@ -453,21 +323,6 @@ namespace TimboJimboEditor.Localization
                     fontSize = 11,
                     alignment = TextAnchor.MiddleLeft,
                     normal = { textColor = subtle },
-                };
-
-                _rowTitleStyle = new GUIStyle(EditorStyles.label)
-                {
-                    fontSize = 12,
-                    fontStyle = FontStyle.Bold,
-                    clipping = TextClipping.Clip,
-                    alignment = TextAnchor.MiddleLeft,
-                };
-
-                _rowSubtitleStyle = new GUIStyle(EditorStyles.miniLabel)
-                {
-                    normal = { textColor = subtle },
-                    clipping = TextClipping.Clip,
-                    alignment = TextAnchor.MiddleLeft
                 };
 
                 _defaultTagStyle = new GUIStyle(EditorStyles.miniLabel)
@@ -482,15 +337,6 @@ namespace TimboJimboEditor.Localization
                     fontStyle = FontStyle.Bold,
                     normal = { textColor = MissingTextColor },
                     alignment = TextAnchor.MiddleRight,
-                };
-
-                _ghostIconStyle = new GUIStyle(EditorStyles.iconButton)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    imagePosition = ImagePosition.ImageLeft,
-                    fontSize = EditorStyles.label.fontSize,
-                    fixedWidth = 0f,
-                    fixedHeight = EditorGUIUtility.singleLineHeight,
                 };
 
                 _textAreaStyle = new GUIStyle(EditorStyles.textArea) { wordWrap = true };

@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "TimboJimbo.Localization.Runtime",
+        "TimboJimboEditor.Core",
         "Unity.TextMeshPro",
         "LightSide.UniText",
         "ZString"

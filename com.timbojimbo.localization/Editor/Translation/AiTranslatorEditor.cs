@@ -1,3 +1,4 @@
+using TimboJimboEditor.Core;
 using UnityEditor;
 using UnityEngine;
 
@@ -58,7 +59,7 @@ namespace TimboJimboEditor.Localization.Translations
 
         private void DrawGeneralSection()
         {
-            LocalizationEditorGUI.DrawFoldout(
+            FoldoutGUI.Draw(
                 ref _showGeneralSection,
                 () => {
                     GUILayout.Label("General", LocalizationEditorGUI.RowTitleStyle);
@@ -96,7 +97,7 @@ namespace TimboJimboEditor.Localization.Translations
 
         private void DrawApiConfigSection()
         {
-            LocalizationEditorGUI.DrawFoldout(
+            FoldoutGUI.Draw(
                 ref _showApiKeySection,
                 () => {
                     var isMissingApiKey = string.IsNullOrEmpty(_apiKeyInput);
@@ -107,10 +108,7 @@ namespace TimboJimboEditor.Localization.Translations
                     if (isMissingApiKey)
                         titleContent.image = warningIcon;
 
-                    GUILayout.Label(titleContent, LocalizationEditorGUI.RowTitleStyle, GUILayout.ExpandWidth(false));
-                    GUILayout.Space(6f);
-                    GUILayout.Label(subtitleContent, LocalizationEditorGUI.RowSubtitleStyle, GUILayout.ExpandWidth(false));
-
+                    FoldoutGUI.Title(titleContent, subtitleContent);
                     GUILayout.FlexibleSpace();
                 },
                 onToggle: toggle => _showApiKeySection = toggle);
@@ -172,7 +170,7 @@ namespace TimboJimboEditor.Localization.Translations
         {
             AiTranslator translator = Translator;
 
-            LocalizationEditorGUI.DrawFoldout(
+            FoldoutGUI.Draw(
                 ref _showDebugHistory,
                 () => {
                     GUILayout.Label("Request / Response History", LocalizationEditorGUI.HeaderStyle);
