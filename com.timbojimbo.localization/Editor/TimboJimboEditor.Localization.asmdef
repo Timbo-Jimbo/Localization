@@ -6,7 +6,8 @@
         "TimboJimboEditor.Core",
         "Unity.TextMeshPro",
         "LightSide.UniText",
-        "ZString"
+        "ZString",
+        "TimboJimbo.UI.Text.Runtime"
     ],
     "includePlatforms": [
         "Editor"
@@ -27,6 +28,11 @@
             "name": "com.unity.ugui",
             "expression": "2.0.0",
             "define": "TJ_LOCALIZATION_TMP_SUPPORT"
+        },
+        {
+            "name": "com.timbojimbo.ui.text",
+            "expression": "0.1.0",
+            "define": "TJ_LOCALIZATION_UI_TEXT_SUPPORT"
         }
     ],
     "noEngineReferences": false

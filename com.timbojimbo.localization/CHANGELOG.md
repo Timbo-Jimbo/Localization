@@ -1,4 +1,8 @@
-## [Unreleased]
+## [1.9.0] - 2026-09-20
+
+### Added
+
+- `TextBlockLocalizer`, applying localized strings to `com.timbojimbo.ui.text`'s `TextBlock`, and seeding from a `TextBlock` in the localized string editor. Compiled only when that package is present
 
 ## [1.8.0] - 2026-09-18
 

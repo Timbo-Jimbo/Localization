@@ -211,6 +211,14 @@ namespace TimboJimboEditor.Localization
                 return true;
             }
 #endif
+
+#if TJ_LOCALIZATION_UI_TEXT_SUPPORT
+            if (context.TryGetComponent(out TimboJimbo.UI.Text.TextBlock textBlockComp))
+            {
+                targetToSeed.stringValue = textBlockComp.Text;
+                return true;
+            }
+#endif
             return false;
         }
 
