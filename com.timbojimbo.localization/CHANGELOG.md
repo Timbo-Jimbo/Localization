@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Changed
+
+- The active locale's culture is now the current UI culture (`CultureInfo.CurrentUICulture`) while it is active, so whatever follows the UI language follows the active locale: which way the UI reads (UI Next's `UI.ReadingDirection`), resource lookups. With no locale at all, the device's UI culture comes back. Matching the device's locale still reads the device's own culture
+
 ## [1.9.0] - 2026-09-20
 
 ### Added

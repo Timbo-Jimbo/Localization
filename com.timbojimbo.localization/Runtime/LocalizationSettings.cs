@@ -22,12 +22,17 @@ namespace TimboJimbo.Localization
         public static LocalizationLocale DefaultLocale => ActiveInstance != null ? ActiveInstance._defaultLocale : null;
         public static LocalizationLocale ActiveLocale => _active != null ? _active : DefaultLocale;
         private static LocalizationLocale _active;
+
+        // The device's UI culture, as it was before the active locale's culture took its place: what the best match for
+        // the device's locale is worked out from, and what comes back with no locale at all.
+        private static CultureInfo _deviceUICulture;
         private static string ActiveLocalePrefKey => $"{nameof(LocalizationSettings)}.{nameof(ActiveLocale)}";
 
         public static void SetActiveLocale(LocalizationLocale locale)
         {
             if (_active == locale) return;
             _active = locale;
+            ApplyUICulture();
 
             PlayerPrefs.SetString(ActiveLocalePrefKey, _active?.DisplayCode);
             PlayerPrefs.Save();
@@ -49,6 +54,17 @@ namespace TimboJimbo.Localization
             SetActiveLocale(null);
         }
 
+        // The active locale's culture becomes the current UI culture, so whatever follows the UI language (which way the
+        // UI reads, resource lookups) follows the active locale; with no locale at all, the device's comes back.
+        private static void ApplyUICulture()
+        {
+            _deviceUICulture ??= CultureInfo.CurrentUICulture;
+            var active = ActiveLocale;
+            var culture = active != null ? active.CultureInfo : _deviceUICulture;
+            if (culture != null && CultureInfo.CurrentUICulture.Name != culture.Name)
+                CultureInfo.CurrentUICulture = culture;
+        }
+
         public static LocalizationLocale GetBestMatchForDeviceLocale(IReadOnlyList<LocalizationLocale> locales = null)
         {
             if (TryGetBestMatchForDeviceLocale(out var locale, locales))
@@ -65,7 +81,8 @@ namespace TimboJimbo.Localization
             if (locales == null || locales.Count == 0)
                 return false;
 
-            var deviceCulture = CultureInfo.CurrentUICulture ?? CultureInfo.CurrentCulture;
+            // The device's, not the active locale's, which is the current UI culture once a locale is active.
+            var deviceCulture = _deviceUICulture ?? CultureInfo.CurrentUICulture ?? CultureInfo.CurrentCulture;
             var deviceLanguageCode = deviceCulture?.TwoLetterISOLanguageName?.ToLowerInvariant().Trim();
             var deviceCountryCode = GetCountryCode(deviceCulture);
 
