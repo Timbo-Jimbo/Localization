@@ -94,7 +94,7 @@ You can create them from the Project window with:
 - **Create > Localization > Localized String**
 - **Create > Localization > Localized Sprite**
 
-After creating one, open it in the inspector and fill in the value for your default locale first. The inspector will also show the other locales from `LocalizationSettings`.
+After creating one, open it in the inspector and fill in the value for your default locale first. The inspector will also show the other locales from `LocalizationSettings`: an asset keeps one entry per locale, keyed by the locale's code, and the editor adds entries as locales are added to the settings.
 
 Asset location is not important here either. Put them wherever they make sense for your project structure.
 
@@ -114,11 +114,29 @@ Right now the built-in applicators are text-focused:
 - `LegacyTextLocalizer` for `UnityEngine.UI.Text`
 - `UniTextLocalizer` for `LightSide.UniText` when the [UniText package](https://github.com/LightSideKittens/UniText) is detected.
 
-In practice, you usually add one of these components, assign its target field, and then set the `LocalizableString` it should resolve.
+In practice, you usually add one of these components, assign its target field, and then set the `LocalizedString` it should resolve.
 
 ## Scripting API
 
 Most runtime access goes through `LocalizationSettings`, `Localized*`, and the `Localizable*` wrappers.
+
+### Locale Codes
+
+A locale's identity is its `LocaleCode`: a language and an optional country, `en` or `en-AU`. Localized assets key their values by code, and the `LocalizationLocale` assets in `LocalizationSettings` carry a locale's metadata (native name, culture) under its `Code`. Nothing is keyed by a locale object, so a content build (Addressables, AssetBundles) never carries its own copy of a locale, and two locale assets with the same code are the same locale.
+
+```csharp
+var code = LocaleCode.Parse("en-AU");   // or new LocaleCode("en", "AU")
+code.Language;                          // "en"
+code.Country;                           // "AU"
+code.LanguageOnly;                      // en
+code.ToString();                        // "en-AU"
+```
+
+Compare locales by code, never by object:
+
+```csharp
+if (locale.Code == LocalizationSettings.DefaultCode) { ... }
+```
 
 ### Iterate Locales
 
@@ -127,45 +145,62 @@ Use `LocalizationSettings.Locales` to access the configured locale list.
 ```csharp
 foreach (var locale in LocalizationSettings.Locales)
 {
-	Debug.Log(locale.DisplayCode);
+	Debug.Log($"{locale.Code}: {locale.NativeName}");
 }
 ```
 
+`LocalizationSettings.Find(code)` gives the registered locale for a code (null when the settings don't list it), and `LocalizationSettings.GetCulture(code)` its culture.
+
 ### Check the Active Locale
 
-Use `LocalizationSettings.ActiveLocale` to read the current locale.
+Use `LocalizationSettings.ActiveLocale` (or `ActiveCode`) to read the current locale.
 
 ```csharp
 var activeLocale = LocalizationSettings.ActiveLocale;
 
 if (activeLocale != null)
-	Debug.Log($"Active locale: {activeLocale.DisplayCode}");
+	Debug.Log($"Active locale: {activeLocale.Code}");
 ```
 
 If you want to switch locales in code:
 
 ```csharp
 LocalizationSettings.SetActiveLocale(myLocale);
+LocalizationSettings.SetActiveLocale(LocaleCode.Parse("fr"));   // false when the settings don't list it
 ```
 
 ### Manually Resolve Values
 
-If you want to resolve values yourself instead of using an applicator, pass in the locale you want.
+If you want to resolve values yourself instead of using an applicator, pass in the code (or locale) you want. Resolution takes the exact code, then the language alone (`en` for `en-AU`), then the language with any country, then the default locale, skipping entries with no value.
 
 ```csharp
-var locale = LocalizationSettings.ActiveLocale;
+var code = LocalizationSettings.ActiveCode;
 
-string title = myLocalizedString.Resolve(locale);
-string buttonLabel = myLocalizableString.Resolve(locale);
-Sprite icon = myLocalizableSprite.Resolve(locale);
+string title = myLocalizedString.Resolve(code);
+string buttonLabel = myLocalizableString.Resolve(code);
+Sprite icon = myLocalizableSprite.Resolve(code);
+
+string sameTitle = myLocalizedString.Resolve(LocalizationSettings.ActiveLocale);   // forwards the locale's code
 ```
 
-Formatted strings also support manual parameters:
+Formatted strings also support manual parameters, formatted under the code's culture:
 
 ```csharp
-string coinsText = myLocalizedString.Resolve(locale, coinCount);
-string scoreText = myLocalizableString.Resolve(locale, score);
+string coinsText = myLocalizedString.Resolve(code, coinCount);
+string scoreText = myLocalizableString.Resolve(code, score);
 ```
+
+### Loading the Settings Another Way
+
+`LocalizationSettings` registers itself when it loads, which the **Preloaded Assets** entry does at startup. A game that ships it another way (Addressables, a bundle, Resources) registers it explicitly:
+
+```csharp
+LocalizationSettings.Register(settings);
+```
+
+## Upgrading from 1.x
+
+In 1.x a localized asset referenced the locale assets inside `LocalizationSettings`, so a content build copied them and every string in it resolved empty. 2.0 keys values by `LocaleCode` instead. After updating the package, run **Tools > Localization > Migrate Assets To Locale Codes** once and commit the re-saved assets; until then 1.x assets still load, with their codes filled from the references they carry. The `CHANGELOG` lists the API changes.
 
 # AI Translations
 

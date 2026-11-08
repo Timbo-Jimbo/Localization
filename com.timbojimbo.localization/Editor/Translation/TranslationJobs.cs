@@ -26,14 +26,14 @@ namespace TimboJimboEditor.Localization.Translations
 
         public readonly struct InspectorState
         {
-            private readonly Dictionary<LocalizationLocale, LocalePresentationState> _localeStates;
+            private readonly Dictionary<LocaleCode, LocalePresentationState> _localeStates;
 
             public InspectorState(
                 bool hasRelevantJobs,
                 int relevantJobCount,
                 float progress,
                 string summary,
-                Dictionary<LocalizationLocale, LocalePresentationState> localeStates)
+                Dictionary<LocaleCode, LocalePresentationState> localeStates)
             {
                 HasRelevantJobs = hasRelevantJobs;
                 RelevantJobCount = relevantJobCount;
@@ -48,11 +48,11 @@ namespace TimboJimboEditor.Localization.Translations
             public float Progress { get; }
             public string Summary { get; }
 
-            public bool TryGetLocaleState(LocalizationLocale locale, out LocalePresentationState state)
+            public bool TryGetLocaleState(LocaleCode code, out LocalePresentationState state)
             {
-                if (locale != null && _localeStates != null)
+                if (!code.IsNone && _localeStates != null)
                 {
-                    return _localeStates.TryGetValue(locale, out state);
+                    return _localeStates.TryGetValue(code, out state);
                 }
 
                 state = default;
@@ -92,7 +92,6 @@ namespace TimboJimboEditor.Localization.Translations
             AiTranslator translator,
             UnityEngine.Object[] selectedTargets,
             TranslationJobScope scope,
-            LocalizationLocale singleTargetLocale,
             out string failureMessage)
         {
             failureMessage = null;
@@ -109,14 +108,14 @@ namespace TimboJimboEditor.Localization.Translations
                     return false;
                 }
 
-                LocalizationLocale defaultLocale = LocalizationSettings.DefaultLocale;
-                if (defaultLocale == null)
+                LocaleCode defaultCode = LocalizationSettings.DefaultCode;
+                if (defaultCode.IsNone)
                 {
                     failureMessage = "No default locale is configured.";
                     return false;
                 }
 
-                List<TranslationQueueItem> translationQueue = BuildTranslationQueue(selectedTargets, defaultLocale, scope, singleTargetLocale);
+                List<TranslationQueueItem> translationQueue = BuildTranslationQueue(selectedTargets, defaultCode, scope);
                 int totalWorkUnits = CountTranslationWorkUnits(translationQueue);
                 if (translationQueue.Count == 0 || totalWorkUnits == 0)
                 {
@@ -130,7 +129,7 @@ namespace TimboJimboEditor.Localization.Translations
                     return false;
                 }
 
-                var job = new TranslationJob(translator, defaultLocale, translationQueue, totalWorkUnits);
+                var job = new TranslationJob(translator, defaultCode, translationQueue, totalWorkUnits);
                 _activeJobs.Add(job);
                 RaiseStateChanged();
                 _ = RunJob(job);
@@ -166,7 +165,7 @@ namespace TimboJimboEditor.Localization.Translations
                 return default;
             }
 
-            var localeStates = new Dictionary<LocalizationLocale, LocalePresentationState>();
+            var localeStates = new Dictionary<LocaleCode, LocalePresentationState>();
             int relevantJobCount = 0;
             float progressSum = 0f;
             string summary = null;
@@ -193,25 +192,25 @@ namespace TimboJimboEditor.Localization.Translations
                         continue;
                     }
 
-                    foreach (KeyValuePair<LocalizationLocale, LocaleTranslationState> localeEntry in targetEntry.Value.LocaleStates)
+                    foreach (KeyValuePair<LocaleCode, LocaleTranslationState> localeEntry in targetEntry.Value.LocaleStates)
                     {
-                        LocalizationLocale locale = localeEntry.Key;
+                        LocaleCode code = localeEntry.Key;
                         LocaleTranslationState localeState = localeEntry.Value;
-                        if (locale == null || (!localeState.IsTranslating && string.IsNullOrEmpty(localeState.PartialText)))
+                        if (code.IsNone || (!localeState.IsTranslating && string.IsNullOrEmpty(localeState.PartialText)))
                         {
                             continue;
                         }
 
                         string partialText = localeState.IsTranslating ? localeState.PartialText : null;
-                        if (localeStates.TryGetValue(locale, out LocalePresentationState existingState))
+                        if (localeStates.TryGetValue(code, out LocalePresentationState existingState))
                         {
-                            localeStates[locale] = new LocalePresentationState(
+                            localeStates[code] = new LocalePresentationState(
                                 existingState.IsTranslating || localeState.IsTranslating,
                                 string.IsNullOrEmpty(existingState.PartialText) ? partialText : existingState.PartialText);
                         }
                         else
                         {
-                            localeStates.Add(locale, new LocalePresentationState(localeState.IsTranslating, partialText));
+                            localeStates.Add(code, new LocalePresentationState(localeState.IsTranslating, partialText));
                         }
                     }
                 }
@@ -345,9 +344,8 @@ namespace TimboJimboEditor.Localization.Translations
 
         private static List<TranslationQueueItem> BuildTranslationQueue(
             UnityEngine.Object[] selectedTargets,
-            LocalizationLocale defaultLocale,
-            TranslationJobScope scope,
-            LocalizationLocale singleTargetLocale)
+            LocaleCode defaultCode,
+            TranslationJobScope scope)
         {
             var translationQueue = new List<TranslationQueueItem>();
             if (selectedTargets == null)
@@ -364,20 +362,20 @@ namespace TimboJimboEditor.Localization.Translations
                 }
 
                 EntityId targetId = localizedString.GetEntityId();
-                
+
                 if (!seenTargetIds.Add(targetId))
                     continue;
 
-                if (!localizedString.HasMeaningfulValueForLocale(defaultLocale))
+                if (!localizedString.HasMeaningfulValue(defaultCode))
                     continue;
 
-                List<LocalizationLocale> targetLocales = BuildTargetLocaleList(localizedString, defaultLocale, scope);
-                if (targetLocales.Count == 0)
+                List<LocaleCode> targetCodes = BuildTargetCodeList(localizedString, defaultCode, scope);
+                if (targetCodes.Count == 0)
                 {
                     continue;
                 }
 
-                translationQueue.Add(new TranslationQueueItem(localizedString, targetLocales));
+                translationQueue.Add(new TranslationQueueItem(localizedString, targetCodes));
             }
 
             return translationQueue;
@@ -388,59 +386,61 @@ namespace TimboJimboEditor.Localization.Translations
             int total = 0;
             for (int i = 0; i < translationQueue.Count; i++)
             {
-                total += translationQueue[i].TargetLocales.Count;
+                total += translationQueue[i].TargetCodes.Count;
             }
 
             return total;
         }
 
-        private static List<LocalizationLocale> BuildTargetLocaleList(
+        private static List<LocaleCode> BuildTargetCodeList(
             LocalizedString localizedString,
-            LocalizationLocale defaultLocale,
+            LocaleCode defaultCode,
             TranslationJobScope scope
         )
         {
-            var targetLocales = new List<LocalizationLocale>();
+            var targetCodes = new List<LocaleCode>();
 
             if (scope is SingleLocale singleLocaleScope)
             {
-                targetLocales.Add(singleLocaleScope.TargetLocale);
-                return targetLocales;
+                if (!singleLocaleScope.TargetCode.IsNone)
+                    targetCodes.Add(singleLocaleScope.TargetCode);
+                return targetCodes;
             }
 
-            var seenLocales = new HashSet<LocalizationLocale>();
             IReadOnlyList<LocalizationLocale> projectLocales = LocalizationSettings.Locales;
             for (int i = 0; i < projectLocales.Count; i++)
             {
                 LocalizationLocale locale = projectLocales[i];
-                
-                if (locale == null || locale == defaultLocale || !seenLocales.Add(locale))
+                if (locale == null) continue;
+
+                LocaleCode code = locale.Code;
+                if (code.IsNone || code == defaultCode || targetCodes.Contains(code))
                     continue;
 
-                if (scope == TranslationJobScope.Missing && localizedString.HasMeaningfulValueForLocale(locale))
+                if (scope is MissingLocales && localizedString.HasMeaningfulValue(code))
                     continue;
 
-                targetLocales.Add(locale);
+                targetCodes.Add(code);
             }
 
-            return targetLocales;
+            return targetCodes;
         }
 
-        private static void ApplyTranslatedValue(LocalizedString localizedString, LocalizationLocale locale, string value)
+        private static void ApplyTranslatedValue(LocalizedString localizedString, LocaleCode code, string value)
         {
-            if (localizedString == null || locale == null)
+            if (localizedString == null || code.IsNone)
             {
                 return;
             }
 
             Undo.RecordObject(localizedString, $"Translate {localizedString.name}");
-            SetLocaleValue(localizedString, locale, value);
+            SetLocaleValue(localizedString, code, value);
             EditorUtility.SetDirty(localizedString);
         }
 
-        private static void SetLocaleValue(LocalizedString localizedString, LocalizationLocale locale, string value)
+        private static void SetLocaleValue(LocalizedString localizedString, LocaleCode code, string value)
         {
-            if (localizedString == null || locale == null)
+            if (localizedString == null || code.IsNone)
             {
                 return;
             }
@@ -449,23 +449,10 @@ namespace TimboJimboEditor.Localization.Translations
 
             try
             {
-                for (int i = 0; i < localizedString.Values.Count; i++)
-                {
-                    LocaleValuePair<string> pair = localizedString.Values[i];
-                    if (pair == null || pair.Locale != locale)
-                    {
-                        continue;
-                    }
-
+                if (localizedString.TryFindValue(code, out LocaleValuePair<string> pair))
                     pair.Value = value;
-                    return;
-                }
-
-                localizedString.Values.Add(new LocaleValuePair<string>
-                {
-                    Locale = locale,
-                    Value = value,
-                });
+                else
+                    localizedString.Values.Add(new LocaleValuePair<string>(code, value));
             }
             finally
             {
@@ -481,7 +468,7 @@ namespace TimboJimboEditor.Localization.Translations
         private sealed class TranslationJob
         {
             private readonly AiTranslator _translator;
-            private readonly LocalizationLocale _defaultLocale;
+            private readonly LocaleCode _defaultCode;
             private readonly List<TranslationQueueItem> _translationQueue;
             private readonly CancellationTokenSource _cancellation = new();
             private readonly int _totalWorkUnits;
@@ -489,12 +476,12 @@ namespace TimboJimboEditor.Localization.Translations
 
             public TranslationJob(
                 AiTranslator translator,
-                LocalizationLocale defaultLocale,
+                LocaleCode defaultCode,
                 List<TranslationQueueItem> translationQueue,
                 int totalWorkUnits)
             {
                 _translator = translator;
-                _defaultLocale = defaultLocale;
+                _defaultCode = defaultCode;
                 _translationQueue = translationQueue;
                 _totalWorkUnits = Mathf.Max(1, totalWorkUnits);
                 TargetStatesById = BuildTargetStateMap(translationQueue);
@@ -551,7 +538,7 @@ namespace TimboJimboEditor.Localization.Translations
                         TranslationQueueItem queuedItem = _translationQueue[queueIndex];
                         LocalizedString localizedString = queuedItem.LocalizedString;
                         int completedWorkUnitsBeforeAsset = completedWorkUnits;
-                        int currentAssetWorkUnits = queuedItem.TargetLocales.Count;
+                        int currentAssetWorkUnits = queuedItem.TargetCodes.Count;
 
                         SetProgress(
                             $"Translating {localizedString.name}…",
@@ -564,8 +551,8 @@ namespace TimboJimboEditor.Localization.Translations
                         {
                             await _translator.Translate(
                                 localizedString,
-                                _defaultLocale,
-                                queuedItem.TargetLocales,
+                                _defaultCode,
+                                queuedItem.TargetCodes,
                                 update => OnTranslationProgress(queuedItem, update, completedWorkUnitsBeforeAsset, currentAssetWorkUnits),
                                 _cancellation.Token);
                         }
@@ -661,16 +648,16 @@ namespace TimboJimboEditor.Localization.Translations
                 Undo.RecordObject(queuedItem.LocalizedString, $"Translate {queuedItem.LocalizedString.name}");
                 TargetTranslationState targetState = TargetStatesById[queuedItem.TargetId];
 
-                for (int i = 0; i < queuedItem.TargetLocales.Count; i++)
+                for (int i = 0; i < queuedItem.TargetCodes.Count; i++)
                 {
-                    LocalizationLocale locale = queuedItem.TargetLocales[i];
-                    if (locale == null)
+                    LocaleCode code = queuedItem.TargetCodes[i];
+                    if (code.IsNone)
                     {
                         continue;
                     }
 
-                    SetLocaleValue(queuedItem.LocalizedString, locale, string.Empty);
-                    targetState.BeginLocale(locale);
+                    SetLocaleValue(queuedItem.LocalizedString, code, string.Empty);
+                    targetState.BeginLocale(code);
                 }
 
                 EditorUtility.SetDirty(queuedItem.LocalizedString);
@@ -687,15 +674,15 @@ namespace TimboJimboEditor.Localization.Translations
                     return;
                 }
 
-                for (int i = 0; i < queuedItem.TargetLocales.Count; i++)
+                for (int i = 0; i < queuedItem.TargetCodes.Count; i++)
                 {
-                    LocalizationLocale locale = queuedItem.TargetLocales[i];
-                    if (locale == null)
+                    LocaleCode code = queuedItem.TargetCodes[i];
+                    if (code.IsNone)
                     {
                         continue;
                     }
 
-                    targetState.EndLocale(locale);
+                    targetState.EndLocale(code);
                 }
 
                 RaiseStateChanged();
@@ -717,16 +704,16 @@ namespace TimboJimboEditor.Localization.Translations
                     StatusMessage = $"{queuedItem.LocalizedString.name}: {update.Message}";
                 }
 
-                if (TargetStatesById.TryGetValue(queuedItem.TargetId, out TargetTranslationState targetState) && update.Locale != null)
+                if (TargetStatesById.TryGetValue(queuedItem.TargetId, out TargetTranslationState targetState) && !update.Code.IsNone)
                 {
                     if (update.Phase == TranslationProgressPhase.LocaleCompleted)
                     {
-                        targetState.CompleteLocale(update.Locale);
-                        ApplyTranslatedValue(queuedItem.LocalizedString, update.Locale, update.Text ?? string.Empty);
+                        targetState.CompleteLocale(update.Code);
+                        ApplyTranslatedValue(queuedItem.LocalizedString, update.Code, update.Text ?? string.Empty);
                     }
                     else if (update.Phase == TranslationProgressPhase.PartialLocaleText)
                     {
-                        targetState.SetPartialText(update.Locale, update.Text ?? string.Empty);
+                        targetState.SetPartialText(update.Code, update.Text ?? string.Empty);
                     }
                 }
 
@@ -766,62 +753,62 @@ namespace TimboJimboEditor.Localization.Translations
             }
 
             public LocalizedString LocalizedString { get; }
-            public Dictionary<LocalizationLocale, LocaleTranslationState> LocaleStates { get; } = new();
+            public Dictionary<LocaleCode, LocaleTranslationState> LocaleStates { get; } = new();
 
-            public void BeginLocale(LocalizationLocale locale)
+            public void BeginLocale(LocaleCode code)
             {
-                if (locale == null)
+                if (code.IsNone)
                 {
                     return;
                 }
 
-                LocaleTranslationState state = GetOrCreate(locale);
+                LocaleTranslationState state = GetOrCreate(code);
                 state.IsTranslating = true;
                 state.PartialText = null;
             }
 
-            public void SetPartialText(LocalizationLocale locale, string partialText)
+            public void SetPartialText(LocaleCode code, string partialText)
             {
-                if (locale == null)
+                if (code.IsNone)
                 {
                     return;
                 }
 
-                LocaleTranslationState state = GetOrCreate(locale);
+                LocaleTranslationState state = GetOrCreate(code);
                 state.IsTranslating = true;
                 state.PartialText = partialText;
             }
 
-            public void CompleteLocale(LocalizationLocale locale)
+            public void CompleteLocale(LocaleCode code)
             {
-                if (locale == null)
+                if (code.IsNone)
                 {
                     return;
                 }
 
-                if (LocaleStates.TryGetValue(locale, out LocaleTranslationState state))
+                if (LocaleStates.TryGetValue(code, out LocaleTranslationState state))
                 {
                     state.IsTranslating = false;
                     state.PartialText = null;
                 }
             }
 
-            public void EndLocale(LocalizationLocale locale)
+            public void EndLocale(LocaleCode code)
             {
-                if (locale == null)
+                if (code.IsNone)
                 {
                     return;
                 }
 
-                LocaleStates.Remove(locale);
+                LocaleStates.Remove(code);
             }
 
-            private LocaleTranslationState GetOrCreate(LocalizationLocale locale)
+            private LocaleTranslationState GetOrCreate(LocaleCode code)
             {
-                if (!LocaleStates.TryGetValue(locale, out LocaleTranslationState state))
+                if (!LocaleStates.TryGetValue(code, out LocaleTranslationState state))
                 {
                     state = new LocaleTranslationState();
-                    LocaleStates.Add(locale, state);
+                    LocaleStates.Add(code, state);
                 }
 
                 return state;
@@ -836,33 +823,33 @@ namespace TimboJimboEditor.Localization.Translations
 
         private readonly struct TranslationQueueItem
         {
-            public TranslationQueueItem(LocalizedString localizedString, List<LocalizationLocale> targetLocales)
+            public TranslationQueueItem(LocalizedString localizedString, List<LocaleCode> targetCodes)
             {
                 LocalizedString = localizedString;
-                TargetLocales = targetLocales;
+                TargetCodes = targetCodes;
                 TargetId = localizedString != null ? localizedString.GetEntityId() : EntityId.None;
             }
 
             public LocalizedString LocalizedString { get; }
-            public List<LocalizationLocale> TargetLocales { get; }
+            public List<LocaleCode> TargetCodes { get; }
             public EntityId TargetId { get; }
         }
     }
-    
+
     public abstract class TranslationJobScope
     {
         public static TranslationJobScope Missing => new MissingLocales();
         public static TranslationJobScope All => new AllLocales();
-        public static TranslationJobScope SingleLocale(LocalizationLocale targetLocale) => new SingleLocale(targetLocale);
+        public static TranslationJobScope SingleLocale(LocaleCode targetCode) => new SingleLocale(targetCode);
     }
 
     public sealed class SingleLocale : TranslationJobScope
     {
-        public LocalizationLocale TargetLocale { get; }
+        public LocaleCode TargetCode { get; }
 
-        public SingleLocale(LocalizationLocale targetLocale)
+        public SingleLocale(LocaleCode targetCode)
         {
-            TargetLocale = targetLocale;
+            TargetCode = targetCode;
         }
     }
 

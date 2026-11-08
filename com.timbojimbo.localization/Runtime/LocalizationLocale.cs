@@ -3,25 +3,27 @@ using UnityEngine;
 
 namespace TimboJimbo.Localization
 {
+    /// <summary>
+    /// A locale's metadata: its <see cref="Code"/>, native name and culture. Lives in <see cref="LocalizationSettings"/>,
+    /// the one registry. Localized values never reference it; they key by <see cref="Code"/>. Compare two locales with
+    /// <c>a.Code == b.Code</c>, never by object: a content build may carry its own copy of a locale.
+    /// </summary>
     public class LocalizationLocale : ScriptableObject
     {
-        public string LanguageCode => _languageCode;
-        public string CountryCode => _countryCode;
+        [SerializeField] private string _languageCode;
+        [SerializeField] private string _countryCode;
+        [SerializeField] private string _nativeName;
+
+        private LocaleCode? _cachedCode;
+        private CultureInfo _cachedCultureInfo;
+
+        public LocaleCode Code => _cachedCode ??= new LocaleCode(_languageCode, _countryCode);
+        public string LanguageCode => Code.Language;
+        public string CountryCode => Code.Country;
         public string NativeName => _nativeName;
-        public string DisplayCode
-        {
-            get
-            {
-                if (_cachedDisplayCode != null) return _cachedDisplayCode;
 
-                if (string.IsNullOrEmpty(CountryCode))
-                    _cachedDisplayCode = LanguageCode;
-                else
-                    _cachedDisplayCode = $"{LanguageCode}-{CountryCode}";
-
-                return _cachedDisplayCode;
-            }
-        }
+        /// <summary>The code as text: <c>en</c> or <c>en-AU</c>.</summary>
+        public string DisplayCode => Code.ToString();
 
         public CultureInfo CultureInfo
         {
@@ -35,7 +37,7 @@ namespace TimboJimbo.Localization
                 }
                 catch (CultureNotFoundException)
                 {
-                    Debug.LogWarning($"Culture not found for locale {DisplayCode}, falling back to invariant culture.");
+                    Debug.LogWarning($"Culture not found for locale {DisplayCode}, falling back to invariant culture.", this);
                     _cachedCultureInfo = CultureInfo.InvariantCulture;
                 }
 
@@ -43,22 +45,16 @@ namespace TimboJimbo.Localization
             }
         }
 
-        public bool IsDefaultLocale => LocalizationSettings.DefaultLocale == this;
+        public bool IsDefaultLocale => LocalizationSettings.DefaultLocale != null && LocalizationSettings.DefaultLocale.Code == Code;
 
-        [SerializeField] private string _languageCode;
-        [SerializeField] private string _countryCode;
-        [SerializeField] private string _nativeName;
-
-        private string _cachedDisplayCode;
-        private CultureInfo _cachedCultureInfo;
-
-        void OnValidate()
+        private void OnValidate()
         {
-            // Invalidate cached display code when language or country code changes
-            _cachedDisplayCode = null;
+            _cachedCode = null;
             _cachedCultureInfo = null;
-            _languageCode = _languageCode?.ToLowerInvariant().Trim();
-            _countryCode = _countryCode?.ToUpperInvariant().Trim();
+
+            var code = new LocaleCode(_languageCode, _countryCode);
+            _languageCode = code.Language;
+            _countryCode = code.Country;
         }
     }
 }

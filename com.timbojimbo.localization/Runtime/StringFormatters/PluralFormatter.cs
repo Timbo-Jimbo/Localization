@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -58,7 +59,9 @@ namespace TimboJimbo.Localization.StringFormatters
                 return TryFormatResult.Skipped;
             }
 
-            var desiredPluralForm = GetPluralForm(value, LocalizationSettings.ActiveLocale);
+            // Resolve wraps formatting in the target locale's culture, so the plural rules follow the locale being
+            // resolved, not the active one.
+            var desiredPluralForm = GetPluralForm(value, CultureInfo.CurrentCulture.TwoLetterISOLanguageName);
             var formatter = new DecimalValue(value);
 
             while (FormatHelper.TryGetNextEntry(ref entriesSection, out var entry))
@@ -93,7 +96,7 @@ namespace TimboJimbo.Localization.StringFormatters
             public DecimalValue(decimal value) { _value = value; }
 
             public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format) =>
-                _value.TryFormat(destination, out charsWritten, format, System.Globalization.CultureInfo.CurrentCulture);
+                _value.TryFormat(destination, out charsWritten, format, CultureInfo.CurrentCulture);
         }
 
 
@@ -161,15 +164,12 @@ namespace TimboJimbo.Localization.StringFormatters
             Other
         }
 
-        private static PluralForm GetPluralForm(int number, LocalizationLocale locale) => GetPluralForm((decimal)number, locale);
-        private static PluralForm GetPluralForm(float number, LocalizationLocale locale) => GetPluralForm((decimal)number, locale);
-        private static PluralForm GetPluralForm(double number, LocalizationLocale locale) => GetPluralForm((decimal)number, locale);
-        private static PluralForm GetPluralForm(decimal number, LocalizationLocale locale)
+        private static PluralForm GetPluralForm(decimal number, string languageCode)
         {
             decimal n = Math.Abs(number);
             bool isIntegerIsh = Math.Abs(n - Math.Round(n)) < 0.000001m;
 
-            switch (locale.LanguageCode)
+            switch (languageCode)
             {
                 case "zh":
                 case "ja":

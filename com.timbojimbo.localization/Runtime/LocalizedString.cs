@@ -7,11 +7,11 @@ namespace TimboJimbo.Localization
 {
     public interface ILocalizedStringResolver : ILocalizedValueResolver<string>
     {
-        string Resolve<T1>(LocalizationLocale locale, T1 param1);
-        string Resolve<T1, T2>(LocalizationLocale locale, T1 param1, T2 param2);
-        string Resolve<T1, T2, T3>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3);
-        string Resolve<T1, T2, T3, T4>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3, T4 param4);
-        string Resolve<T1, T2, T3, T4, T5>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5);
+        string Resolve<T1>(LocaleCode code, T1 param1);
+        string Resolve<T1, T2>(LocaleCode code, T1 param1, T2 param2);
+        string Resolve<T1, T2, T3>(LocaleCode code, T1 param1, T2 param2, T3 param3);
+        string Resolve<T1, T2, T3, T4>(LocaleCode code, T1 param1, T2 param2, T3 param3, T4 param4);
+        string Resolve<T1, T2, T3, T4, T5>(LocaleCode code, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5);
     }
 
     [CreateAssetMenu(fileName = "New Localized String", menuName = "Localization/Localized String")]
@@ -22,14 +22,15 @@ namespace TimboJimbo.Localization
             return !string.IsNullOrWhiteSpace(value);
         }
 
-        public string Resolve<T1>(LocalizationLocale locale, T1 param1)
+        public string Resolve<T1>(LocaleCode code, T1 param1)
         {
-            if (!TryFindBestMatchValue(locale, out var bestMatch))
+            if (!TryFindBestMatchValue(code, out var bestMatch))
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<string>();
             }
-            using (CultureOverrideBlock.Auto(locale.CultureInfo))
+
+            using (CultureOverrideBlock.Auto(LocalizationSettings.GetCulture(code)))
             {
                 try
                 {
@@ -37,21 +38,21 @@ namespace TimboJimbo.Localization
                 }
                 catch (Exception ex)
                 {
-                    LogFormatError(1, locale, ex);
+                    LogFormatError(1, code, ex);
                     return bestMatch.Value;
                 }
             }
         }
 
-        public string Resolve<T1, T2>(LocalizationLocale locale, T1 param1, T2 param2)
+        public string Resolve<T1, T2>(LocaleCode code, T1 param1, T2 param2)
         {
-            if (!TryFindBestMatchValue(locale, out var bestMatch))
+            if (!TryFindBestMatchValue(code, out var bestMatch))
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<string>();
             }
 
-            using (CultureOverrideBlock.Auto(locale.CultureInfo))
+            using (CultureOverrideBlock.Auto(LocalizationSettings.GetCulture(code)))
             {
                 try
                 {
@@ -59,21 +60,21 @@ namespace TimboJimbo.Localization
                 }
                 catch (Exception ex)
                 {
-                    LogFormatError(2, locale, ex);
+                    LogFormatError(2, code, ex);
                     return bestMatch.Value;
                 }
             }
         }
 
-        public string Resolve<T1, T2, T3>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3)
+        public string Resolve<T1, T2, T3>(LocaleCode code, T1 param1, T2 param2, T3 param3)
         {
-            if (!TryFindBestMatchValue(locale, out var bestMatch))
+            if (!TryFindBestMatchValue(code, out var bestMatch))
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<string>();
             }
 
-            using (CultureOverrideBlock.Auto(locale.CultureInfo))
+            using (CultureOverrideBlock.Auto(LocalizationSettings.GetCulture(code)))
             {
                 try
                 {
@@ -81,21 +82,21 @@ namespace TimboJimbo.Localization
                 }
                 catch (Exception ex)
                 {
-                    LogFormatError(3, locale, ex);
+                    LogFormatError(3, code, ex);
                     return bestMatch.Value;
                 }
             }
         }
 
-        public string Resolve<T1, T2, T3, T4>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3, T4 param4)
+        public string Resolve<T1, T2, T3, T4>(LocaleCode code, T1 param1, T2 param2, T3 param3, T4 param4)
         {
-            if (!TryFindBestMatchValue(locale, out var bestMatch))
+            if (!TryFindBestMatchValue(code, out var bestMatch))
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<string>();
             }
 
-            using (CultureOverrideBlock.Auto(locale.CultureInfo))
+            using (CultureOverrideBlock.Auto(LocalizationSettings.GetCulture(code)))
             {
                 try
                 {
@@ -103,21 +104,21 @@ namespace TimboJimbo.Localization
                 }
                 catch (Exception ex)
                 {
-                    LogFormatError(4, locale, ex);
+                    LogFormatError(4, code, ex);
                     return bestMatch.Value;
                 }
             }
         }
 
-        public string Resolve<T1, T2, T3, T4, T5>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5)
+        public string Resolve<T1, T2, T3, T4, T5>(LocaleCode code, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5)
         {
-            if (!TryFindBestMatchValue(locale, out var bestMatch))
+            if (!TryFindBestMatchValue(code, out var bestMatch))
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<string>();
             }
 
-            using (CultureOverrideBlock.Auto(locale.CultureInfo))
+            using (CultureOverrideBlock.Auto(LocalizationSettings.GetCulture(code)))
             {
                 try
                 {
@@ -125,26 +126,18 @@ namespace TimboJimbo.Localization
                 }
                 catch (Exception ex)
                 {
-                    LogFormatError(5, locale, ex);
+                    LogFormatError(5, code, ex);
                     return bestMatch.Value;
                 }
             }
         }
 
-        private void LogLocalizationMissingWarn(LocalizationLocale locale)
+        private void LogFormatError(int paramCount, LocaleCode code, Exception ex)
         {
             //todo: replace with EditorAwareUtil.IsLiveInstance -> using DebugContextInfo.Context as target obj
             if (!Application.isPlaying) return;
 
-            LogWarning($"No localization found for locale \"{(locale != null ? locale.DisplayCode : null)}\". Returning empty string.");
-        }
-
-        private void LogFormatError(int paramCount, LocalizationLocale locale, Exception ex)
-        {
-            //todo: replace with EditorAwareUtil.IsLiveInstance -> using DebugContextInfo.Context as target obj
-            if (!Application.isPlaying) return;
-
-            LogException(ex, $"Format error when resolving locale \"{(locale != null ? locale.DisplayCode : null)}\" with {paramCount} parameters");
+            LogException(ex, $"Format error when resolving locale \"{code}\" with {paramCount} parameters");
         }
     }
 }

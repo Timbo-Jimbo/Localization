@@ -176,12 +176,12 @@ namespace TimboJimboEditor.Localization
                     menu.AddItem(new GUIContent("Set as Default"), false, () => EditorApplication.delayCall = () =>
                     {
                         serializedObject.Update();
-                        var activeLocalePrev = LocalizationSettings.ActiveLocale;
+                        var activeCodePrev = LocalizationSettings.ActiveCode;
 
                         _defaultLocaleProperty.objectReferenceValue = locale;
                         serializedObject.ApplyModifiedProperties();
 
-                        if (activeLocalePrev != LocalizationSettings.ActiveLocale)
+                        if (activeCodePrev != LocalizationSettings.ActiveCode)
                             LocalizationSettings.SetActiveLocale(LocalizationSettings.ActiveLocale);
                         
                     });
@@ -246,7 +246,7 @@ namespace TimboJimboEditor.Localization
         {
             if (settings == null) return;
 
-            var isDeletingActiveLocale = locale != null && locale == LocalizationSettings.ActiveLocale;
+            var isDeletingActiveLocale = locale != null && locale.Code == LocalizationSettings.ActiveCode;
 
             SerializedObject so = new SerializedObject(settings);
             SerializedProperty list = so.FindProperty(LocalesPropertyName);
@@ -286,10 +286,13 @@ namespace TimboJimboEditor.Localization
             if(isDeletingActiveLocale)
                 LocalizationSettings.ClearActiveLocale();
 
-            // Find all LocalizedValues in the project and sync them to remove entries for the deleted locale.
-            var localizedValues = LocalizedValueEditorUtility.FindAllLocalizedValuesInProject();
-            foreach (var localizedValue in localizedValues)
-                localizedValue.SyncWithProjectLocales(removeEntriesWithMissingLocales: true);
+            // The deleted locale's data goes with it: every localized asset drops its entry for the code.
+            if (locale != null)
+            {
+                var localizedValues = LocalizedValueEditorUtility.FindAllLocalizedValuesInProject();
+                foreach (var localizedValue in localizedValues)
+                    LocalizedValueEditorUtility.RemoveEntries(localizedValue, locale.Code);
+            }
         }
 
         private static LocalizationLocale CreateLocale(LocalizationSettings settings, CultureInfo culture)
@@ -335,10 +338,10 @@ namespace TimboJimboEditor.Localization
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssetIfDirty(settings);
 
-            // Find all LocalizedValues in the project and sync them to add entries for the new locale.
+            // Every localized asset gets an entry for the new locale.
             var localizedValues = LocalizedValueEditorUtility.FindAllLocalizedValuesInProject();
             foreach (var localizedValue in localizedValues)
-                localizedValue.SyncWithProjectLocales();
+                LocalizedValueEditorUtility.SyncWithProjectLocales(localizedValue);
 
             return locale;
         }

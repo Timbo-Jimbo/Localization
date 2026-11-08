@@ -4,7 +4,6 @@ using System.Linq;
 using TimboJimboEditor.Core;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Pool;
 using TimboJimbo.Localization;
 using TimboJimboEditor.Localization.Utility;
 using System;
@@ -12,14 +11,15 @@ using System;
 namespace TimboJimboEditor.Localization
 {
     /// <summary>
-    /// Base inspector for <see cref="LocalizedValue"/> types.
+    /// Base inspector for <see cref="LocalizedValue"/> types. Rows are the asset's entries, keyed by locale code; each
+    /// row shows the locale the settings register for its code, or a warning when the settings don't list the code.
     /// </summary>
     public abstract class LocalizedValueEditor : Editor
     {
-        protected const string ValuesPropertyName = "Values";
+        protected const string ValuesPropertyName = LocalizedValueEditorUtility.ValuesPropertyName;
         protected const string DescriptionPropertyName = "Description";
-        protected const string LocalePropertyName = "Locale";
-        protected const string ValuePropertyName = "Value";
+        protected const string CodePropertyName = LocalizedValueEditorUtility.CodePropertyName;
+        protected const string ValuePropertyName = LocalizedValueEditorUtility.ValuePropertyName;
 
         private const float TagWidth = 70f;
 
@@ -31,6 +31,16 @@ namespace TimboJimboEditor.Localization
 
         protected virtual void OnEnable()
         {
+            // Opening an asset is one of the editor's moments to bring its entries in step with the settings' locales.
+            var synced = false;
+            foreach (var target in targets)
+            {
+                if (target is LocalizedValue localizedValue)
+                    synced |= LocalizedValueEditorUtility.SyncWithProjectLocales(localizedValue);
+            }
+
+            if (synced) serializedObject.Update();
+
             ValuesProperty = serializedObject.FindProperty(ValuesPropertyName);
             DescriptionProperty = serializedObject.FindProperty(DescriptionPropertyName);
         }
@@ -45,7 +55,7 @@ namespace TimboJimboEditor.Localization
             if (target is not LocalizedValue localizedValue) return stats;
 
             stats.TotalRows = LocalizationSettings.Locales.Count;
-            stats.LocalisedCount = LocalizationSettings.Locales.Count(localizedValue.HasMeaningfulValueForLocale);
+            stats.LocalisedCount = LocalizationSettings.Locales.Count(locale => locale != null && localizedValue.HasMeaningfulValue(locale.Code));
             stats.MissingCount = Mathf.Max(0, stats.TotalRows - stats.LocalisedCount);
             return stats;
         }
@@ -85,7 +95,7 @@ namespace TimboJimboEditor.Localization
         {
             var targetName = targets.Length == 1 ? ObjectNames.NicifyVariableName(targets[0].name) : $"{targets.Length} {targets[0].GetType().Name}s";
             var stats = GetStats();
-            
+
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Label(targetName, LocalizationEditorGUI.HeaderStyle);
@@ -97,13 +107,13 @@ namespace TimboJimboEditor.Localization
                     GUILayout.Label($"{stats.MissingCount} Missing", LocalizationEditorGUI.MissingTagStyle, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true));
                 }
             }
-            
+
             EditorGUILayout.Space(4f);
-            
+
             DrawDescription();
             EditorGUILayout.Space(4f);
             DrawDefaultLocaleSection();
-            EditorGUILayout.Space(4f);  
+            EditorGUILayout.Space(4f);
             DrawAdditionalControls();
         }
 
@@ -113,7 +123,8 @@ namespace TimboJimboEditor.Localization
 
         private void DrawDefaultLocaleSection()
         {
-            int defaultIndex = FindDefaultLocaleRowIndex();
+            var defaultLocale = LocalizationSettings.DefaultLocale;
+            int defaultIndex = defaultLocale != null ? LocalizedValueEditorUtility.IndexOfCode(ValuesProperty, defaultLocale.Code) : -1;
             if (defaultIndex < 0)
             {
                 EditorGUILayout.HelpBox(
@@ -123,9 +134,7 @@ namespace TimboJimboEditor.Localization
             }
 
             SerializedProperty elementProperty = ValuesProperty.GetArrayElementAtIndex(defaultIndex);
-            SerializedProperty localeProperty = elementProperty.FindPropertyRelative(LocalePropertyName);
             SerializedProperty valueProperty = elementProperty.FindPropertyRelative(ValuePropertyName);
-            LocalizationLocale defaultLocale = localeProperty != null ? localeProperty.objectReferenceValue as LocalizationLocale : null;
 
             DrawRowHeaderTitleArea(defaultLocale, valueProperty);
             EditorGUILayout.Space(2f);
@@ -184,13 +193,12 @@ namespace TimboJimboEditor.Localization
 
         private void DrawNonDefaultLocaleRows()
         {
+            var defaultCode = LocalizationSettings.DefaultCode;
+
             for (int i = 0; i < ValuesProperty.arraySize; i++)
             {
-                SerializedProperty elementProperty = ValuesProperty.GetArrayElementAtIndex(i);
-                SerializedProperty localeProperty = elementProperty.FindPropertyRelative(LocalePropertyName);
-                LocalizationLocale locale = localeProperty != null ? localeProperty.objectReferenceValue as LocalizationLocale : null;
-
-                if (locale != null && IsDefaultLocale(locale)) continue;
+                var code = ReadCode(i);
+                if (!defaultCode.IsNone && code == defaultCode) continue;
 
                 DrawRow(i);
             }
@@ -199,19 +207,19 @@ namespace TimboJimboEditor.Localization
         private void DrawRow(int index)
         {
             SerializedProperty elementProperty = ValuesProperty.GetArrayElementAtIndex(index);
-            SerializedProperty localeProperty = elementProperty.FindPropertyRelative(LocalePropertyName);
             SerializedProperty valueProperty = elementProperty.FindPropertyRelative(ValuePropertyName);
-            LocalizationLocale locale = localeProperty != null ? localeProperty.objectReferenceValue as LocalizationLocale : null;
+            LocaleCode code = ReadCode(index);
+            LocalizationLocale locale = LocalizationSettings.Find(code);
 
-            bool expanded = GetLocaleRowExpanded(locale);
+            bool expanded = GetLocaleRowExpanded(code);
             FoldoutGUI.Draw(
-                ref expanded, 
-                () => DrawRowHeaderContent(locale, valueProperty),
-                onToggle: toggle => SetLocaleRowExpanded(locale, toggle),
+                ref expanded,
+                () => DrawRowHeaderContent(code, locale, valueProperty),
+                onToggle: toggle => SetLocaleRowExpanded(code, toggle),
                 onGroupToggle: toggle =>
                 {
-                    foreach (LocalizationLocale l in LocalizationSettings.Locales)
-                        SetLocaleRowExpanded(l, toggle);
+                    foreach (var l in LocalizationSettings.Locales)
+                        SetLocaleRowExpanded(LocaleCode.Of(l), toggle);
                 }
             );
 
@@ -220,54 +228,17 @@ namespace TimboJimboEditor.Localization
             EditorGUILayout.Space(4f);
             OnLocaleValueGUI(locale, valueProperty);
 
-            if (IsDuplicateLocale(locale))
-                EditorGUILayout.HelpBox($"Duplicate Locale: There are two or more entries that define a value for the same '{locale.name}'.", MessageType.Warning);
+            if (IsDuplicateCode(code))
+                EditorGUILayout.HelpBox($"Duplicate Locale: There are two or more entries that define a value for '{code}'.", MessageType.Warning);
 
             EditorGUILayout.Space(2f);
         }
 
-        private void DrawRowHeaderContent(LocalizationLocale locale, SerializedProperty valueProperty)
+        private void DrawRowHeaderContent(LocaleCode code, LocalizationLocale locale, SerializedProperty valueProperty)
         {
-            if(locale == null)
+            if (locale == null)
             {
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    var warningIcon = EditorGUIUtility.IconContent("warning").image;
-                    GUILayout.Label(new GUIContent("Missing Locale", warningIcon), LocalizationEditorGUI.RowTitleStyle, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true));
-                    GUILayout.FlexibleSpace();
-                    if(LocalizationEditorGUI.KebabMenuButton())
-                    {
-                        var menu = new GenericMenu();
-                        menu.AddItem(new GUIContent("Remove Missing Locales"), false, () =>
-                        {
-                            var response = EditorUtility.DisplayDialogComplex(
-                                "Remove Missing Locales",
-                                "Would you like to remove missing locales from all other assets in the project as well?",
-                                ok: "Yes, remove from all assets",
-                                cancel: "Cancel",
-                                alt: "Just this asset"
-                            );
-
-                            const int Ok = 0;
-                            const int Cancel = 1;
-                            const int Alt = 2;
-
-                            if(response == Cancel) return;
-
-                            var removeTargets = response switch
-                            {
-                                Ok => LocalizedValueEditorUtility.FindAllLocalizedValuesInProject(),
-                                Alt => targets.OfType<LocalizedValue>().ToList(),
-                                _ => throw new ArgumentOutOfRangeException(nameof(response))
-                            };
-
-                            foreach (var localizedValue in removeTargets)
-                                localizedValue.SyncWithProjectLocales(removeEntriesWithMissingLocales: true);
-                        });
-                        menu.ShowAsContext();
-                    }
-                }
-
+                DrawUnknownCodeRowHeader(code);
                 return;
             }
 
@@ -276,6 +247,52 @@ namespace TimboJimboEditor.Localization
             DrawRowHeaderMenuArea(locale, valueProperty);
         }
 
+        private void DrawUnknownCodeRowHeader(LocaleCode code)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                var warningIcon = EditorGUIUtility.IconContent("warning").image;
+                string title = code.IsNone ? "Entry Without A Locale" : $"Unknown Locale '{code}'";
+                GUILayout.Label(new GUIContent(title, warningIcon, "The LocalizationSettings asset doesn't list this locale code."), LocalizationEditorGUI.RowTitleStyle, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true));
+                GUILayout.FlexibleSpace();
+                if (LocalizationEditorGUI.KebabMenuButton())
+                {
+                    var menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("Remove Entries For Unknown Locales"), false, () =>
+                    {
+                        var response = EditorUtility.DisplayDialogComplex(
+                            "Remove Entries For Unknown Locales",
+                            "Remove the entries whose locale code the LocalizationSettings asset doesn't list from all other localized assets in the project as well?",
+                            ok: "Yes, remove from all assets",
+                            cancel: "Cancel",
+                            alt: "Just this asset"
+                        );
+
+                        const int Ok = 0;
+                        const int Cancel = 1;
+                        const int Alt = 2;
+
+                        if (response == Cancel) return;
+
+                        var removeTargets = response switch
+                        {
+                            Ok => LocalizedValueEditorUtility.FindAllLocalizedValuesInProject(),
+                            Alt => targets.OfType<LocalizedValue>().ToList(),
+                            _ => throw new ArgumentOutOfRangeException(nameof(response))
+                        };
+
+                        foreach (var localizedValue in removeTargets)
+                        {
+                            Undo.RecordObject(localizedValue, "Remove Entries For Unknown Locales");
+                            LocalizedValueEditorUtility.SyncWithProjectLocales(localizedValue, removeUnknownCodes: true);
+                        }
+
+                        serializedObject.Update();
+                    });
+                    menu.ShowAsContext();
+                }
+            }
+        }
 
         protected virtual void DrawRowHeaderTitleArea(LocalizationLocale locale, SerializedProperty valueProperty)
         {
@@ -291,14 +308,14 @@ namespace TimboJimboEditor.Localization
 
         protected virtual void DrawRowHeaderMenuArea(LocalizationLocale locale, SerializedProperty valueProperty)
         {
-            if (!valueProperty.hasMultipleDifferentValues && target is LocalizedValue localizedValue && !localizedValue.HasMeaningfulValueForLocale(locale))
+            if (!valueProperty.hasMultipleDifferentValues && target is LocalizedValue localizedValue && !localizedValue.HasMeaningfulValue(locale.Code))
                 GUILayout.Label("Missing", LocalizationEditorGUI.MissingTagStyle, GUILayout.Width(TagWidth));
             else
                 GUILayout.Space(TagWidth);
 
             DrawRowHeaderMenuButton(locale, valueProperty);
         }
-        
+
         protected void DrawRowHeaderMenuButton(LocalizationLocale locale, SerializedProperty valueProperty)
         {
             if (LocalizationEditorGUI.KebabMenuButton())
@@ -318,11 +335,12 @@ namespace TimboJimboEditor.Localization
         {
             if (locale == null) return;
             string clearLabel = IsEditingMultipleObjects ? "Clear For Selection" : "Clear";
-            menu.AddItem(new GUIContent(clearLabel), false, () => ClearLocaleForSelectedTargets(locale));
+            menu.AddItem(new GUIContent(clearLabel), false, () => ClearLocaleForSelectedTargets(locale.Code));
         }
 
         /// <summary>
-        /// Draws the value field for one locale row.
+        /// Draws the value field for one locale row. <paramref name="locale"/> is null for an entry whose code the
+        /// settings don't list.
         /// </summary>
         public virtual void OnLocaleValueGUI(LocalizationLocale locale, SerializedProperty valueProperty)
         {
@@ -350,34 +368,26 @@ namespace TimboJimboEditor.Localization
         // ---------------------------------------------------------------------
 
         /// <summary>
-        /// Clears the value for the given locale across all selected targets. No-op for the
+        /// Clears the value for the given locale code across all selected targets. No-op for the
         /// default locale. Exposed so derived editors can offer the same behavior from custom
         /// controls.
         /// </summary>
-        protected void ClearLocaleForSelectedTargets(LocalizationLocale locale)
+        protected void ClearLocaleForSelectedTargets(LocaleCode code)
         {
-            if (locale == null || IsDefaultLocale(locale)) return;
+            if (code.IsNone || IsDefaultCode(code)) return;
 
             UnityEngine.Object[] selectedTargets = serializedObject.targetObjects;
             for (int i = 0; i < selectedTargets.Length; i++)
             {
                 if (selectedTargets[i] is not LocalizedValue localizedValue) continue;
 
-                Undo.RecordObject(localizedValue, $"Clear {GetRowTitle(locale)}");
+                Undo.RecordObject(localizedValue, $"Clear {code}");
 
                 using SerializedObject targetObject = new(localizedValue);
                 SerializedProperty valuesProperty = targetObject.FindProperty(ValuesPropertyName);
                 if (valuesProperty == null) continue;
 
-                for (int valueIndex = 0; valueIndex < valuesProperty.arraySize; valueIndex++)
-                {
-                    SerializedProperty pair = valuesProperty.GetArrayElementAtIndex(valueIndex);
-                    SerializedProperty localeProperty = pair.FindPropertyRelative(LocalePropertyName);
-                    if (localeProperty == null || localeProperty.objectReferenceValue != locale) continue;
-
-                    ClearValue(pair.FindPropertyRelative(ValuePropertyName));
-                    break;
-                }
+                LocalizedValueEditorUtility.ClearValue(LocalizedValueEditorUtility.FindValueProperty(valuesProperty, code));
 
                 targetObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(localizedValue);
@@ -394,8 +404,8 @@ namespace TimboJimboEditor.Localization
         /// </summary>
         protected void ClearNonDefaultTranslationsForSelectedTargets()
         {
-            LocalizationLocale defaultLocale = LocalizationSettings.DefaultLocale;
-            if (defaultLocale == null) return;
+            var defaultCode = LocalizationSettings.DefaultCode;
+            if (defaultCode.IsNone) return;
 
             UnityEngine.Object[] selectedTargets = serializedObject.targetObjects;
             for (int i = 0; i < selectedTargets.Length; i++)
@@ -411,11 +421,11 @@ namespace TimboJimboEditor.Localization
                 for (int valueIndex = 0; valueIndex < valuesProperty.arraySize; valueIndex++)
                 {
                     SerializedProperty pair = valuesProperty.GetArrayElementAtIndex(valueIndex);
-                    SerializedProperty localeProperty = pair.FindPropertyRelative(LocalePropertyName);
-                    if (localeProperty == null || localeProperty.objectReferenceValue == null || localeProperty.objectReferenceValue == defaultLocale)
+                    var code = LocalizedValueEditorUtility.ReadCode(pair.FindPropertyRelative(CodePropertyName));
+                    if (code.IsNone || code == defaultCode)
                         continue;
 
-                    ClearValue(pair.FindPropertyRelative(ValuePropertyName));
+                    LocalizedValueEditorUtility.ClearValue(pair.FindPropertyRelative(ValuePropertyName));
                 }
 
                 targetObject.ApplyModifiedProperties();
@@ -428,69 +438,50 @@ namespace TimboJimboEditor.Localization
         }
 
         // ---------------------------------------------------------------------
-        // Internal scaffolding (foldouts, sync, ordering, value clearing)
+        // Internal scaffolding (foldouts, ordering)
         // ---------------------------------------------------------------------
 
-        protected static bool GetLocaleRowExpanded(LocalizationLocale locale)
+        protected LocaleCode ReadCode(int index)
         {
-            return SessionState.GetBool(GetFoldoutKey(locale), true);
+            return LocalizedValueEditorUtility.ReadCode(ValuesProperty.GetArrayElementAtIndex(index).FindPropertyRelative(CodePropertyName));
+        }
+
+        protected static bool GetLocaleRowExpanded(LocaleCode code)
+        {
+            return SessionState.GetBool(GetFoldoutKey(code), true);
         }
 
         /// <summary>
-        /// Forces the foldout row for the given locale to be expanded or collapsed. Safe to
+        /// Forces the foldout row for the given locale code to be expanded or collapsed. Safe to
         /// call from derived editors (e.g. to reveal a row that is about to receive a
         /// translation).
         /// </summary>
-        protected static void SetLocaleRowExpanded(LocalizationLocale locale, bool expanded)
+        protected static void SetLocaleRowExpanded(LocaleCode code, bool expanded)
         {
-            SessionState.SetBool(GetFoldoutKey(locale), expanded);
+            SessionState.SetBool(GetFoldoutKey(code), expanded);
         }
 
-        private static string GetFoldoutKey(LocalizationLocale locale)
+        private static string GetFoldoutKey(LocaleCode code)
         {
-            string suffix = locale != null ? locale.DisplayCode : "<unassigned>";
+            string suffix = code.IsNone ? "<unassigned>" : code.ToString();
             return FoldoutStateKeyPrefix + "locale." + suffix;
         }
 
-        protected static bool IsDefaultLocale(LocalizationLocale locale)
+        protected static bool IsDefaultCode(LocaleCode code)
         {
-            if (locale == null) return false;
-            return LocalizationSettings.DefaultLocale == locale;
+            var defaultCode = LocalizationSettings.DefaultCode;
+            return !defaultCode.IsNone && code == defaultCode;
         }
 
-        private int FindDefaultLocaleRowIndex()
+        private bool IsDuplicateCode(LocaleCode code)
         {
-            LocalizationLocale defaultLocale = LocalizationSettings.DefaultLocale;
-            if (defaultLocale == null || ValuesProperty == null) return -1;
+            if (code.IsNone) return false;
 
+            int count = 0;
             for (int i = 0; i < ValuesProperty.arraySize; i++)
             {
-                SerializedProperty elementProperty = ValuesProperty.GetArrayElementAtIndex(i);
-                SerializedProperty localeProperty = elementProperty.FindPropertyRelative(LocalePropertyName);
-                if (localeProperty != null && localeProperty.objectReferenceValue == defaultLocale) return i;
-            }
-
-            return -1;
-        }
-
-        private bool IsDuplicateLocale(UnityEngine.Object locale)
-        {
-            if (locale == null) return false;
-
-            using (HashSetPool<LocalizationLocale>.Get(out HashSet<LocalizationLocale> seenLocales))
-            {
-                for (int i = 0; i < ValuesProperty.arraySize; i++)
-                {
-                    SerializedProperty elementProperty = ValuesProperty.GetArrayElementAtIndex(i);
-                    SerializedProperty localeProperty = elementProperty.FindPropertyRelative(LocalePropertyName);
-                    if (localeProperty != null && localeProperty.objectReferenceValue == locale)
-                    {
-                        if (seenLocales.Contains(locale as LocalizationLocale))
-                            return true;
-
-                        seenLocales.Add(locale as LocalizationLocale);
-                    }
-                }
+                if (ReadCode(i) == code && ++count > 1)
+                    return true;
             }
 
             return false;
@@ -520,27 +511,6 @@ namespace TimboJimboEditor.Localization
                 return $"{code}  •  {nativeName}";
 
             return code;
-        }
-
-        private static void ClearValue(SerializedProperty valueProperty)
-        {
-            if (valueProperty == null) return;
-
-            switch (valueProperty.propertyType)
-            {
-                case SerializedPropertyType.String: valueProperty.stringValue = string.Empty; break;
-                case SerializedPropertyType.ObjectReference: valueProperty.objectReferenceValue = null; break;
-                case SerializedPropertyType.Integer: valueProperty.intValue = 0; break;
-                case SerializedPropertyType.Boolean: valueProperty.boolValue = false; break;
-                case SerializedPropertyType.Float: valueProperty.floatValue = 0f; break;
-                case SerializedPropertyType.Enum: valueProperty.enumValueIndex = 0; break;
-                case SerializedPropertyType.Color: valueProperty.colorValue = Color.white; break;
-                case SerializedPropertyType.Vector2: valueProperty.vector2Value = Vector2.zero; break;
-                case SerializedPropertyType.Vector3: valueProperty.vector3Value = Vector3.zero; break;
-                case SerializedPropertyType.Vector4: valueProperty.vector4Value = Vector4.zero; break;
-                case SerializedPropertyType.Rect: valueProperty.rectValue = Rect.zero; break;
-                case SerializedPropertyType.Bounds: valueProperty.boundsValue = new Bounds(Vector3.zero, Vector3.zero); break;
-            }
         }
 
         protected struct Stats

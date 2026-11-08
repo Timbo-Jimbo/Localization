@@ -9,18 +9,18 @@ namespace TimboJimbo.Localization
     [Serializable]
     public class LocalizableString : LocalizableValue<LocalizedString, string>, ILocalizedStringResolver
     {
-        public string Resolve<T1>(LocalizationLocale locale, T1 param1)
+        public string Resolve<T1>(LocaleCode code, T1 param1)
         {
             if (IsLocalized)
-                return Localized.Resolve(locale, param1);
+                return Localized.Resolve(code, param1);
 
             if (Unlocalized == null)
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<string>();
             }
 
-            using (CultureOverrideBlock.Auto(locale.CultureInfo))
+            using (CultureOverrideBlock.Auto(LocalizationSettings.GetCulture(code)))
             {
                 try
                 {
@@ -28,24 +28,24 @@ namespace TimboJimbo.Localization
                 }
                 catch (Exception ex)
                 {
-                    LogFormatError(UsageContext, 1, locale, ex);
+                    LogFormatError(UsageContext, 1, code, ex);
                     return Unlocalized;
                 }
             }
         }
 
-        public string Resolve<T1, T2>(LocalizationLocale locale, T1 param1, T2 param2)
+        public string Resolve<T1, T2>(LocaleCode code, T1 param1, T2 param2)
         {
             if (IsLocalized)
-                return Localized.Resolve(locale, param1, param2);
+                return Localized.Resolve(code, param1, param2);
 
             if (Unlocalized == null)
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<string>();
             }
 
-            using (CultureOverrideBlock.Auto(locale.CultureInfo))
+            using (CultureOverrideBlock.Auto(LocalizationSettings.GetCulture(code)))
             {
                 try
                 {
@@ -53,24 +53,24 @@ namespace TimboJimbo.Localization
                 }
                 catch (Exception ex)
                 {
-                    LogFormatError(UsageContext, 2, locale, ex);
+                    LogFormatError(UsageContext, 2, code, ex);
                     return Unlocalized;
                 }
             }
         }
 
-        public string Resolve<T1, T2, T3>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3)
+        public string Resolve<T1, T2, T3>(LocaleCode code, T1 param1, T2 param2, T3 param3)
         {
             if (IsLocalized)
-                return Localized.Resolve(locale, param1, param2, param3);
+                return Localized.Resolve(code, param1, param2, param3);
 
             if (Unlocalized == null)
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<string>();
             }
 
-            using (CultureOverrideBlock.Auto(locale.CultureInfo))
+            using (CultureOverrideBlock.Auto(LocalizationSettings.GetCulture(code)))
             {
                 try
                 {
@@ -78,24 +78,24 @@ namespace TimboJimbo.Localization
                 }
                 catch (Exception ex)
                 {
-                    LogFormatError(UsageContext, 3, locale, ex);
+                    LogFormatError(UsageContext, 3, code, ex);
                     return Unlocalized;
                 }
             }
         }
 
-        public string Resolve<T1, T2, T3, T4>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3, T4 param4)
+        public string Resolve<T1, T2, T3, T4>(LocaleCode code, T1 param1, T2 param2, T3 param3, T4 param4)
         {
             if (IsLocalized)
-                return Localized.Resolve(locale, param1, param2, param3, param4);
+                return Localized.Resolve(code, param1, param2, param3, param4);
 
             if (Unlocalized == null)
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<string>();
             }
 
-            using (CultureOverrideBlock.Auto(locale.CultureInfo))
+            using (CultureOverrideBlock.Auto(LocalizationSettings.GetCulture(code)))
             {
                 try
                 {
@@ -103,24 +103,24 @@ namespace TimboJimbo.Localization
                 }
                 catch (Exception ex)
                 {
-                    LogFormatError(UsageContext, 4, locale, ex);
+                    LogFormatError(UsageContext, 4, code, ex);
                     return Unlocalized;
                 }
             }
         }
 
-        public string Resolve<T1, T2, T3, T4, T5>(LocalizationLocale locale, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5)
+        public string Resolve<T1, T2, T3, T4, T5>(LocaleCode code, T1 param1, T2 param2, T3 param3, T4 param4, T5 param5)
         {
             if (IsLocalized)
-                return Localized.Resolve(locale, param1, param2, param3, param4, param5);
+                return Localized.Resolve(code, param1, param2, param3, param4, param5);
 
             if (Unlocalized == null)
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<string>();
             }
 
-            using (CultureOverrideBlock.Auto(locale.CultureInfo))
+            using (CultureOverrideBlock.Auto(LocalizationSettings.GetCulture(code)))
             {
                 try
                 {
@@ -128,17 +128,17 @@ namespace TimboJimbo.Localization
                 }
                 catch (Exception ex)
                 {
-                    LogFormatError(UsageContext, 5, locale, ex);
+                    LogFormatError(UsageContext, 5, code, ex);
                     return Unlocalized;
                 }
             }
         }
 
-        private static void LogFormatError(UsageContext usageContext, int paramCount, LocalizationLocale locale, Exception ex)
+        private static void LogFormatError(UsageContext usageContext, int paramCount, LocaleCode code, Exception ex)
         {
             //todo: replace with EditorAwareUtil.IsLiveInstance -> using DebugContextInfo.Context as target obj
             if (!Application.isPlaying) return;
-            usageContext.LogException(ex, $"Failed to format unlocalized value with {paramCount} params and locale {locale.DisplayCode}. Returning unlocalized value.");
+            usageContext.LogException(ex, $"Failed to format unlocalized value with {paramCount} params and locale \"{code}\". Returning unlocalized value.");
         }
     }
 }

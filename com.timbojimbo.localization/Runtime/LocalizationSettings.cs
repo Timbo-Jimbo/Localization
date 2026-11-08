@@ -5,6 +5,11 @@ using UnityEngine;
 
 namespace TimboJimbo.Localization
 {
+    /// <summary>
+    /// The one locale registry: the project's locale assets (metadata) and the active one. Ships with the player as a
+    /// preloaded asset and registers itself on load; a game that loads it another way calls <see cref="Register"/>.
+    /// Localized values key their entries by <see cref="LocaleCode"/> and never reference this asset or its locales.
+    /// </summary>
     [CreateAssetMenu(fileName = "LocalizationSettings", menuName = "Localization/Settings and Config/Localization Settings")]
     public sealed class LocalizationSettings : ScriptableObject
     {
@@ -15,12 +20,16 @@ namespace TimboJimbo.Localization
 
         public static event Action<LocalizationLocale> OnActiveLocaleChanged;
         public static event Action<LocalizedValue> OnLocalizedValueChanged;
-        private static List<ILocalizationChangeListener> _listeners = new();
+        private static readonly List<ILocalizationChangeListener> _listeners = new();
+        private static readonly Dictionary<LocaleCode, CultureInfo> _culturesByCode = new();
+
         public static bool IsInitialized => ActiveInstance != null;
         public static LocalizationSettings ActiveAsset => ActiveInstance;
         public static IReadOnlyList<LocalizationLocale> Locales => ActiveInstance != null ? ActiveInstance._locales : Array.Empty<LocalizationLocale>();
         public static LocalizationLocale DefaultLocale => ActiveInstance != null ? ActiveInstance._defaultLocale : null;
         public static LocalizationLocale ActiveLocale => _active != null ? _active : DefaultLocale;
+        public static LocaleCode ActiveCode => LocaleCode.Of(ActiveLocale);
+        public static LocaleCode DefaultCode => LocaleCode.Of(DefaultLocale);
         private static LocalizationLocale _active;
 
         // The device's UI culture, as it was before the active locale's culture took its place: what the best match for
@@ -28,13 +37,74 @@ namespace TimboJimbo.Localization
         private static CultureInfo _deviceUICulture;
         private static string ActiveLocalePrefKey => $"{nameof(LocalizationSettings)}.{nameof(ActiveLocale)}";
 
+        /// <summary>
+        /// Makes <paramref name="settings"/> the registry, replacing any other, and picks its active locale (the saved
+        /// one, else the best match for the device). A preloaded settings asset registers itself; call this for one loaded
+        /// another way (Addressables, a bundle, Resources).
+        /// </summary>
+        public static void Register(LocalizationSettings settings)
+        {
+            if (settings == null) throw new ArgumentNullException(nameof(settings));
+
+            ActiveInstance = settings;
+            _active = null;
+            settings.SelectInitialLocale();
+        }
+
+        /// <summary>The registered locale with this code, or null when the settings don't list it.</summary>
+        public static LocalizationLocale Find(LocaleCode code)
+        {
+            if (ActiveInstance == null || code.IsNone) return null;
+
+            var locales = ActiveInstance._locales;
+            for (int i = 0; i < locales.Count; i++)
+            {
+                var locale = locales[i];
+                if (locale != null && locale.Code == code)
+                    return locale;
+            }
+
+            return null;
+        }
+
+        public static bool TryFind(LocaleCode code, out LocalizationLocale locale)
+        {
+            locale = Find(code);
+            return locale != null;
+        }
+
+        /// <summary>
+        /// The culture for a code: the registered locale's, else the culture of that name, else the invariant culture.
+        /// </summary>
+        public static CultureInfo GetCulture(LocaleCode code)
+        {
+            if (code.IsNone) return CultureInfo.InvariantCulture;
+
+            var locale = Find(code);
+            if (locale != null) return locale.CultureInfo;
+
+            if (_culturesByCode.TryGetValue(code, out var culture)) return culture;
+
+            try
+            {
+                culture = CultureInfo.GetCultureInfo(code.ToString());
+            }
+            catch (CultureNotFoundException)
+            {
+                culture = CultureInfo.InvariantCulture;
+            }
+
+            _culturesByCode[code] = culture;
+            return culture;
+        }
+
         public static void SetActiveLocale(LocalizationLocale locale)
         {
             if (_active == locale) return;
             _active = locale;
             ApplyUICulture();
 
-            PlayerPrefs.SetString(ActiveLocalePrefKey, _active?.DisplayCode);
+            PlayerPrefs.SetString(ActiveLocalePrefKey, _active != null ? _active.DisplayCode : null);
             PlayerPrefs.Save();
 
             OnActiveLocaleChanged?.Invoke(ActiveLocale);
@@ -47,6 +117,14 @@ namespace TimboJimbo.Localization
 
                 listener.OnLocaleChanged(ActiveLocale);
             }
+        }
+
+        /// <summary>Activates the registered locale with this code; false, and nothing changes, when the settings don't list it.</summary>
+        public static bool SetActiveLocale(LocaleCode code)
+        {
+            if (!TryFind(code, out var locale)) return false;
+            SetActiveLocale(locale);
+            return true;
         }
 
         public static void ClearActiveLocale()
@@ -81,15 +159,8 @@ namespace TimboJimbo.Localization
             if (locales == null || locales.Count == 0)
                 return false;
 
-            // The device's, not the active locale's, which is the current UI culture once a locale is active.
-            var deviceCulture = _deviceUICulture ?? CultureInfo.CurrentUICulture ?? CultureInfo.CurrentCulture;
-            var deviceLanguageCode = deviceCulture?.TwoLetterISOLanguageName?.ToLowerInvariant().Trim();
-            var deviceCountryCode = GetCountryCode(deviceCulture);
-
-            if (string.IsNullOrEmpty(deviceLanguageCode) && Application.systemLanguage != SystemLanguage.Unknown)
-            {
-                deviceLanguageCode = GetLanguageCodeFromSystemLanguage(Application.systemLanguage);
-            }
+            var deviceCode = GetDeviceCode();
+            var defaultCode = DefaultCode;
 
             int bestScore = -1;
             LocalizationLocale bestMatch = null;
@@ -99,14 +170,14 @@ namespace TimboJimbo.Localization
                 if (candidate == null)
                     continue;
 
-                int score = GetDeviceLocaleMatchScore(candidate, deviceLanguageCode, deviceCountryCode);
+                int score = GetDeviceLocaleMatchScore(candidate.Code, deviceCode, defaultCode);
                 if (score <= bestScore)
                     continue;
 
                 bestScore = score;
                 bestMatch = candidate;
 
-                if (score == 4)
+                if (score == PerfectMatch)
                     break;
             }
 
@@ -126,45 +197,41 @@ namespace TimboJimbo.Localization
             return locale != null;
         }
 
-        private static int GetDeviceLocaleMatchScore(LocalizationLocale candidate, string deviceLanguageCode, string deviceCountryCode)
+        /// <summary>The device's locale code: from its UI culture (as it was before any locale was activated), else the system language.</summary>
+        public static LocaleCode GetDeviceCode()
         {
-            const int perfectMatch = 4;
-            const int languageOnlyMatch = 2;
-            const int languageWithDefaultCountryMatch = 3;
-            const int defaultFallback = 1;
+            // The device's, not the active locale's, which is the current UI culture once a locale is active.
+            var deviceCulture = _deviceUICulture ?? CultureInfo.CurrentUICulture ?? CultureInfo.CurrentCulture;
+            var code = LocaleCode.Of(deviceCulture);
 
-            if (candidate == null)
-                return 0;
+            if (code.IsNone && Application.systemLanguage != SystemLanguage.Unknown)
+                code = new LocaleCode(GetLanguageCodeFromSystemLanguage(Application.systemLanguage));
 
-            if (string.IsNullOrEmpty(deviceLanguageCode))
-                return candidate == DefaultLocale ? defaultFallback : 0;
-
-            if (!string.Equals(candidate.LanguageCode, deviceLanguageCode, StringComparison.OrdinalIgnoreCase))
-                return candidate == DefaultLocale ? defaultFallback : 0;
-
-            if (!string.IsNullOrEmpty(deviceCountryCode) && string.Equals(candidate.CountryCode, deviceCountryCode, StringComparison.OrdinalIgnoreCase))
-                return perfectMatch;
-
-            if (string.IsNullOrEmpty(candidate.CountryCode))
-                return languageWithDefaultCountryMatch;
-
-            return languageOnlyMatch;
+            return code;
         }
 
-        private static string GetCountryCode(CultureInfo culture)
+        private const int PerfectMatch = 4;
+        private const int LanguageWithDefaultCountryMatch = 3;
+        private const int LanguageOnlyMatch = 2;
+        private const int DefaultFallback = 1;
+
+        private static int GetDeviceLocaleMatchScore(LocaleCode candidate, LocaleCode device, LocaleCode defaultCode)
         {
-            if (culture == null)
-                return string.Empty;
+            bool isDefault = !defaultCode.IsNone && candidate == defaultCode;
 
-            var name = culture.Name;
-            if (string.IsNullOrEmpty(name))
-                return string.Empty;
+            if (device.IsNone)
+                return isDefault ? DefaultFallback : 0;
 
-            var separatorIndex = name.IndexOfAny(new[] { '-', '_' });
-            if (separatorIndex < 0 || separatorIndex >= name.Length - 1)
-                return string.Empty;
+            if (!string.Equals(candidate.Language, device.Language, StringComparison.OrdinalIgnoreCase))
+                return isDefault ? DefaultFallback : 0;
 
-            return name.Substring(separatorIndex + 1).ToUpperInvariant();
+            if (device.HasCountry && string.Equals(candidate.Country, device.Country, StringComparison.OrdinalIgnoreCase))
+                return PerfectMatch;
+
+            if (!candidate.HasCountry)
+                return LanguageWithDefaultCountryMatch;
+
+            return LanguageOnlyMatch;
         }
 
         private static string GetLanguageCodeFromSystemLanguage(SystemLanguage systemLanguage)
@@ -218,11 +285,11 @@ namespace TimboJimbo.Localization
             };
         }
 
-        public static void RaiseLocalizedValueChanged(LocalizedValue localizedString)
+        public static void RaiseLocalizedValueChanged(LocalizedValue localizedValue)
         {
             try
             {
-                OnLocalizedValueChanged?.Invoke(localizedString);
+                OnLocalizedValueChanged?.Invoke(localizedValue);
 
                 foreach (var listener in _listeners)
                 {
@@ -230,7 +297,7 @@ namespace TimboJimbo.Localization
                     if (listener is UnityEngine.Object unityObj && unityObj == null)
                         continue;
 
-                    listener.OnLocalizedValueChanged(localizedString);
+                    listener.OnLocalizedValueChanged(localizedValue);
                 }
             }
             catch (Exception ex)
@@ -258,29 +325,25 @@ namespace TimboJimbo.Localization
 
         private void OnEnable()
         {
-            ActiveInstance = this;
-            var savedLocaleCode = PlayerPrefs.GetString(ActiveLocalePrefKey, null);
-            var localeLoaded = false;
-            
-            if (!string.IsNullOrEmpty(savedLocaleCode))
+            // The first settings asset to load is the registry. A later one (a copy in a content build, a second asset
+            // in the project) doesn't take over; a game that means to switch calls Register.
+            if (ActiveInstance != null && ActiveInstance != this) return;
+
+            Register(this);
+        }
+
+        private void SelectInitialLocale()
+        {
+            var savedCode = LocaleCode.Parse(PlayerPrefs.GetString(ActiveLocalePrefKey, null));
+            if (!savedCode.IsNone && TryFind(savedCode, out var savedLocale))
             {
-                var savedLocale = _locales.Find(l => string.Equals(l.DisplayCode, savedLocaleCode, StringComparison.OrdinalIgnoreCase));
-                if (savedLocale != null)
-                {
-                    SetActiveLocale(savedLocale);
-                    localeLoaded = true;
-                }
+                SetActiveLocale(savedLocale);
+                return;
             }
 
-            if (!localeLoaded)
-            {
-                var bestMatch = GetBestMatchForDeviceLocale(_locales);
-                if (bestMatch != null)
-                {
-                    SetActiveLocale(bestMatch);
-                    localeLoaded = true;
-                }
-            }
+            var bestMatch = GetBestMatchForDeviceLocale(_locales);
+            if (bestMatch != null)
+                SetActiveLocale(bestMatch);
         }
     }
 }

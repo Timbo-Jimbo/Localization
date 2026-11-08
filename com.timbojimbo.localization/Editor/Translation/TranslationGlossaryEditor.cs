@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TimboJimbo.Localization;
 using TimboJimboEditor.Core;
+using TimboJimboEditor.Localization.Utility;
 using UnityEditor;
 using UnityEngine;
 
@@ -189,20 +190,8 @@ namespace TimboJimboEditor.Localization.Translations
         {
             if (termObject == null || defaultLocale == null) return null;
 
-            SerializedProperty valuesProperty = termObject.FindProperty("Values");
-            if (valuesProperty == null) return null;
-
-            for (int i = 0; i < valuesProperty.arraySize; i++)
-            {
-                SerializedProperty element = valuesProperty.GetArrayElementAtIndex(i);
-                SerializedProperty localeProperty = element.FindPropertyRelative("Locale");
-                if (localeProperty != null && localeProperty.objectReferenceValue == defaultLocale)
-                {
-                    return element.FindPropertyRelative("Value");
-                }
-            }
-
-            return null;
+            SerializedProperty valuesProperty = termObject.FindProperty(LocalizedValueEditorUtility.ValuesPropertyName);
+            return valuesProperty == null ? null : LocalizedValueEditorUtility.FindValueProperty(valuesProperty, defaultLocale.Code);
         }
 
         private static void DrawEntryHeaderContent(SerializedProperty termEntryProperty, ref bool removeClicked)

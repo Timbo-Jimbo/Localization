@@ -253,7 +253,7 @@ namespace TimboJimboEditor.Localization
             {
                 EnsureSettingsLoaded();
                 _originalLocale = LocalizationSettings.ActiveLocale;
-                _openedOnDefaultLocale = LocalizationSettings.ActiveLocale == LocalizationSettings.DefaultLocale;
+                _openedOnDefaultLocale = LocalizationSettings.ActiveCode == LocalizationSettings.DefaultCode;
             }
 
             public override void OnOpen()
@@ -416,7 +416,7 @@ namespace TimboJimboEditor.Localization
             private void DrawLocaleRow(Rect rowRect, LocalizationLocale locale, Event currentEvent)
             {
                 bool isHovered = rowRect.Contains(currentEvent.mousePosition);
-                bool isCurrentLocale = locale == _originalLocale;
+                bool isCurrentLocale = LocaleCode.Of(locale) == LocaleCode.Of(_originalLocale);
 
                 DrawRowBackground(rowRect, isHovered, isCurrentLocale);
 
@@ -425,12 +425,12 @@ namespace TimboJimboEditor.Localization
 
                 rowRect.xMin += 8f;
                 rowRect.xMax -= 8f;
-                
+
                 GUILayout.BeginArea(rowRect);
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(activeIndicator, isCurrentLocale ? SelectedRowStyle : RowStyle, GUILayout.Width(20), GUILayout.ExpandHeight(true));
                 GUILayout.Label(leftHandSide, isCurrentLocale ? SelectedRowStyle : RowStyle, GUILayout.ExpandHeight(true));
-                if (rightHandSide != null)            
+                if (rightHandSide != null)
                 {
                     GUILayout.FlexibleSpace();
                     GUILayout.Label(rightHandSide, isCurrentLocale ? SelectedRowStyle : RowStyle, GUILayout.ExpandHeight(true));
@@ -438,7 +438,7 @@ namespace TimboJimboEditor.Localization
                 GUILayout.EndHorizontal();
                 GUILayout.EndArea();
 
-                if (isHovered && currentEvent.type == EventType.MouseMove && _hoveredLocale != locale)
+                if (isHovered && currentEvent.type == EventType.MouseMove && LocaleCode.Of(_hoveredLocale) != LocaleCode.Of(locale))
                 {
                     _hoveredLocale = locale;
                     ApplyLocale(locale);
@@ -494,16 +494,16 @@ namespace TimboJimboEditor.Localization
                 name = locale.CultureInfo.EnglishName;
 
             string label = string.IsNullOrEmpty(displayCode) ? name : $"{name} ({displayCode})";
-            return (leftHandSide: label, rightHandSide: locale == defaultLocale ? "Default" : null);
+            return (leftHandSide: label, rightHandSide: LocaleCode.Of(locale) == LocaleCode.Of(defaultLocale) ? "Default" : null);
         }
 
         private static string GetLocaleToolbarLabel()
         {
-            if(!LocalizationSettings.IsInitialized) 
+            if(!LocalizationSettings.IsInitialized)
                 return "No LocalizationSettings";
 
             var locale = LocalizationSettings.ActiveLocale;
-            
+
             var (overrideShownActiveLocale, activeLocale) = LocalePreviewPopupContent.ActiveLocaleDisplay;
             if (overrideShownActiveLocale)
                 locale = activeLocale;

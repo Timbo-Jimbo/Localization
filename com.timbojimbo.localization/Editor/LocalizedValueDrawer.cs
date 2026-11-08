@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using TimboJimbo.Localization;
 using TimboJimboEditor.Localization.Translations;
+using TimboJimboEditor.Localization.Utility;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -457,9 +458,7 @@ namespace TimboJimboEditor.Localization
     {
         private const string LocalizedPropertyName = "Localized";
         private const string DescriptionFieldName = "Description";
-        private const string ValuesFieldName = "Values";
-        private const string PairLocaleFieldName = "Locale";
-        private const string PairValueFieldName = "Value";
+        private const string ValuesFieldName = LocalizedValueEditorUtility.ValuesPropertyName;
         private const string DefaultFolder = "Assets/Localization";
         private const string FolderPrefKeyPrefix = "LocalizableValueDrawer.LastFolder.";
         private const string NameControlName = "CreateAssetName";
@@ -517,22 +516,17 @@ namespace TimboJimboEditor.Localization
             _descriptionProperty = _assetSerialized.FindProperty(DescriptionFieldName);
             _defaultLocale = LocalizationSettings.DefaultLocale;
 
+            // A new asset starts with one entry per project locale, like an imported one.
+            if (LocalizedValueEditorUtility.SyncWithProjectLocales(_assetSerialized))
+                _assetSerialized.ApplyModifiedPropertiesWithoutUndo();
+
             SerializedProperty valuesProperty = _assetSerialized.FindProperty(ValuesFieldName);
-            if (valuesProperty != null && valuesProperty.isArray && valuesProperty.arraySize > 0)
+            if (valuesProperty != null && _defaultLocale != null)
             {
-                SerializedProperty pair = FindDefaultLocalePair(valuesProperty, _defaultLocale) ?? valuesProperty.GetArrayElementAtIndex(0);
-                if (pair != null)
+                _defaultLocaleValueProperty = LocalizedValueEditorUtility.FindValueProperty(valuesProperty, _defaultLocale.Code);
+                if (_defaultLocaleValueProperty != null)
                 {
-                    SerializedProperty localeProperty = pair.FindPropertyRelative(PairLocaleFieldName);
-                    if (localeProperty != null && localeProperty.objectReferenceValue == null)
-                        localeProperty.objectReferenceValue = _defaultLocale;
-
-                    _defaultLocaleValueProperty = pair.FindPropertyRelative(PairValueFieldName);
-                    _assetSerialized.ApplyModifiedPropertiesWithoutUndo();
-
-                    string localeName = _defaultLocale != null && !string.IsNullOrEmpty(_defaultLocale.NativeName)
-                        ? _defaultLocale.NativeName
-                        : "Default";
+                    string localeName = !string.IsNullOrEmpty(_defaultLocale.NativeName) ? _defaultLocale.NativeName : "Default";
                     _defaultLocaleValueLabel = new GUIContent($"{localeName} Value");
                 }
             }
@@ -584,22 +578,6 @@ namespace TimboJimboEditor.Localization
             {
                 DestroyImmediate(created);
             }
-        }
-
-        private static SerializedProperty FindDefaultLocalePair(SerializedProperty valuesProperty, LocalizationLocale defaultLocale)
-        {
-            if (valuesProperty == null || defaultLocale == null)
-                return null;
-
-            for (int i = 0; i < valuesProperty.arraySize; i++)
-            {
-                SerializedProperty element = valuesProperty.GetArrayElementAtIndex(i);
-                SerializedProperty localeProperty = element.FindPropertyRelative(PairLocaleFieldName);
-                if (localeProperty != null && localeProperty.objectReferenceValue == defaultLocale)
-                    return element;
-            }
-
-            return null;
         }
 
         private void OnGUI()
@@ -782,7 +760,7 @@ namespace TimboJimboEditor.Localization
             AssignToTargets(_asset);
             
             if(Prefs.TranslateOnCreate)
-                TranslationJobs.TryStartJob(AiTranslator.GetDefaultTranslator(), new [] { _asset }, TranslationJobScope.Missing, null, out var _);
+                TranslationJobs.TryStartJob(AiTranslator.GetDefaultTranslator(), new [] { _asset }, TranslationJobScope.Missing, out var _);
 
             Close();
 

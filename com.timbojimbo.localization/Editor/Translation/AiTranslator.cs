@@ -12,7 +12,7 @@ using TimboJimbo.Localization;
 namespace TimboJimboEditor.Localization.Translations
 {
     [CreateAssetMenu(fileName = "New AI Translator", menuName = "Localization/Settings and Config/AI Translator (Editor)")]
-    public class AiTranslator : ScriptableObject 
+    public class AiTranslator : ScriptableObject
     {
         private const string OpenAiApiKeyPrefixEditorPrefsKey = "Localisation.AiTranslator.OpenAI.ApiKey";
         private const string DefaultTranslatorGuidEditorPrefsKey = "Localisation.AiTranslator.DefaultTranslatorGuid";
@@ -51,7 +51,7 @@ namespace TimboJimboEditor.Localization.Translations
         [Tooltip("Sampling temperature. Lower values are usually better for deterministic translations.")]
         [Range(0f, 2f)]
         [SerializeField]
-        
+
         private float _temperature = 0.2f;
 
         [NonSerialized]
@@ -243,51 +243,53 @@ namespace TimboJimboEditor.Localization.Translations
         }
 
         /// <summary>
-        /// Translate <paramref name="source"/> from <paramref name="sourceLocale"/> into each of <paramref name="targetLocales"/>.
+        /// Translate <paramref name="source"/> from <paramref name="sourceCode"/> into each of <paramref name="targetCodes"/>.
         /// The source value description, configured glossaries (filtered to source + targets), and context blocks are sent along to guide the LLM.
         /// </summary>
-        public async Awaitable<IReadOnlyDictionary<LocalizationLocale, string>> Translate(
+        public async Awaitable<IReadOnlyDictionary<LocaleCode, string>> Translate(
             LocalizedString source,
-            LocalizationLocale sourceLocale,
-            IReadOnlyList<LocalizationLocale> targetLocales,
+            LocaleCode sourceCode,
+            IReadOnlyList<LocaleCode> targetCodes,
             Action<TranslationProgress> progress,
             CancellationToken cancellationToken = default
         )
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
-            if (sourceLocale == null) throw new ArgumentNullException(nameof(sourceLocale));
-            if (targetLocales == null) throw new ArgumentNullException(nameof(targetLocales));
+            if (sourceCode.IsNone) throw new ArgumentException("The source locale code is empty.", nameof(sourceCode));
+            if (targetCodes == null) throw new ArgumentNullException(nameof(targetCodes));
 
-            if (!TryGetSourceText(source, sourceLocale, out string sourceText) || string.IsNullOrWhiteSpace(sourceText))
+            if (!source.TryFindValue(sourceCode, out LocaleValuePair<string> sourcePair) || string.IsNullOrWhiteSpace(sourcePair.Value))
             {
-                throw new ArgumentException($"Source LocalizedString '{source.name}' has no text for locale '{GetLocaleCode(sourceLocale)}'.", nameof(source));
+                throw new ArgumentException($"Source LocalizedString '{source.name}' has no text for locale '{sourceCode}'.", nameof(source));
             }
+
+            string sourceText = sourcePair.Value;
 
             string apiKey = GetOpenAiApiKey(this);
             if (string.IsNullOrWhiteSpace(apiKey))
             {
                 const string message = "OpenAI API key is not configured for AiTranslator. Set it in the AiTranslator inspector.";
-                ReportProgress(TranslationProgressPhase.Failed, null, null, 0, 0, message, progress, true);
+                ReportProgress(TranslationProgressPhase.Failed, LocaleCode.None, null, 0, 0, message, progress, true);
                 throw new InvalidOperationException(message);
             }
 
-            var uniqueTargets = BuildUniqueTargetLocaleList(targetLocales);
+            var uniqueTargets = BuildUniqueTargetCodeList(targetCodes);
             if (uniqueTargets.Count == 0)
             {
-                return new Dictionary<LocalizationLocale, string>();
+                return new Dictionary<LocaleCode, string>();
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            ReportProgress(TranslationProgressPhase.PreparingRequest, null, null, 0, uniqueTargets.Count, "Preparing OpenAI translation request.", progress, true);
+            ReportProgress(TranslationProgressPhase.PreparingRequest, LocaleCode.None, null, 0, uniqueTargets.Count, "Preparing OpenAI translation request.", progress, true);
 
-            string systemPrompt = BuildSystemPrompt(sourceLocale, uniqueTargets);
-            string userPrompt = BuildUserPrompt(sourceText, source.Description, sourceLocale, uniqueTargets);
-            TranslationDebugRecord debugRecord = AddDebugRecord(systemPrompt, userPrompt, sourceLocale, uniqueTargets);
+            string systemPrompt = BuildSystemPrompt(sourceCode, uniqueTargets);
+            string userPrompt = BuildUserPrompt(sourceText, source.Description, sourceCode, uniqueTargets);
+            TranslationDebugRecord debugRecord = AddDebugRecord(systemPrompt, userPrompt, sourceCode, uniqueTargets);
             var client = new OpenAiClient(ApiBaseUrl, Model, TimeoutSeconds, Temperature, apiKey);
 
             try
             {
-                IReadOnlyDictionary<LocalizationLocale, string> result = await client.Translate(
+                IReadOnlyDictionary<LocaleCode, string> result = await client.Translate(
                     systemPrompt,
                     userPrompt,
                     uniqueTargets,
@@ -301,38 +303,18 @@ namespace TimboJimboEditor.Localization.Translations
             catch (OperationCanceledException)
             {
                 debugRecord.MarkCancelled();
-                ReportProgress(TranslationProgressPhase.Cancelled, null, null, 0, uniqueTargets.Count, "OpenAI translation request cancelled.", progress, true);
+                ReportProgress(TranslationProgressPhase.Cancelled, LocaleCode.None, null, 0, uniqueTargets.Count, "OpenAI translation request cancelled.", progress, true);
                 throw;
             }
             catch (Exception ex)
             {
                 debugRecord.MarkFailed(ex.Message);
-                ReportProgress(TranslationProgressPhase.Failed, null, null, 0, uniqueTargets.Count, ex.Message, progress, true);
+                ReportProgress(TranslationProgressPhase.Failed, LocaleCode.None, null, 0, uniqueTargets.Count, ex.Message, progress, true);
                 throw;
             }
         }
 
-        private static bool TryGetSourceText(LocalizedString source, LocalizationLocale sourceLocale, out string sourceText)
-        {
-            sourceText = null;
-            if (source.Values == null)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < source.Values.Count; i++)
-            {
-                LocaleValuePair<string> pair = source.Values[i];
-                if (pair?.Locale != sourceLocale) continue;
-
-                sourceText = pair.Value;
-                return true;
-            }
-
-            return false;
-        }
-
-        private TranslationDebugRecord AddDebugRecord(string systemPrompt, string userPrompt, LocalizationLocale sourceLocale, IReadOnlyList<LocalizationLocale> targetLocales)
+        private TranslationDebugRecord AddDebugRecord(string systemPrompt, string userPrompt, LocaleCode sourceCode, IReadOnlyList<LocaleCode> targetCodes)
         {
             _debugHistory ??= new List<TranslationDebugRecord>();
             while (_debugHistory.Count >= MaxDebugHistoryEntries)
@@ -346,8 +328,8 @@ namespace TimboJimboEditor.Localization.Translations
                 Model,
                 Temperature,
                 TimeoutSeconds,
-                GetLocaleCode(sourceLocale),
-                BuildLocaleListText(targetLocales),
+                sourceCode.ToString(),
+                BuildLocaleListText(targetCodes),
                 systemPrompt,
                 userPrompt);
 
@@ -355,46 +337,44 @@ namespace TimboJimboEditor.Localization.Translations
             return record;
         }
 
-        private static string BuildLocaleListText(IReadOnlyList<LocalizationLocale> locales)
+        private static string BuildLocaleListText(IReadOnlyList<LocaleCode> codes)
         {
-            if (locales == null || locales.Count == 0)
+            if (codes == null || codes.Count == 0)
             {
                 return string.Empty;
             }
 
-            var builder = new StringBuilder(locales.Count * 8);
-            for (int i = 0; i < locales.Count; i++)
+            var builder = new StringBuilder(codes.Count * 8);
+            for (int i = 0; i < codes.Count; i++)
             {
                 if (i > 0)
                 {
                     builder.Append(", ");
                 }
 
-                builder.Append(GetLocaleCode(locales[i]));
+                builder.Append(codes[i].ToString());
             }
 
             return builder.ToString();
         }
 
-        private static List<LocalizationLocale> BuildUniqueTargetLocaleList(IReadOnlyList<LocalizationLocale> targetLocales)
+        private static List<LocaleCode> BuildUniqueTargetCodeList(IReadOnlyList<LocaleCode> targetCodes)
         {
-            var uniqueTargets = new List<LocalizationLocale>(targetLocales.Count);
-            var seenLocaleCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var uniqueTargets = new List<LocaleCode>(targetCodes.Count);
 
-            for (int i = 0; i < targetLocales.Count; i++)
+            for (int i = 0; i < targetCodes.Count; i++)
             {
-                LocalizationLocale locale = targetLocales[i];
-                string localeCode = GetLocaleCode(locale);
-                if (!string.IsNullOrWhiteSpace(localeCode) && seenLocaleCodes.Add(localeCode))
+                LocaleCode code = targetCodes[i];
+                if (!code.IsNone && !uniqueTargets.Contains(code))
                 {
-                    uniqueTargets.Add(locale);
+                    uniqueTargets.Add(code);
                 }
             }
 
             return uniqueTargets;
         }
 
-        private string BuildSystemPrompt(LocalizationLocale sourceLocale, IReadOnlyList<LocalizationLocale> targetLocales)
+        private string BuildSystemPrompt(LocaleCode sourceCode, IReadOnlyList<LocaleCode> targetCodes)
         {
             var prompt = new StringBuilder(4096);
 
@@ -406,7 +386,7 @@ namespace TimboJimboEditor.Localization.Translations
             prompt.AppendLine("Output strict JSON Lines only: one complete JSON object per target locale, one object per line, no markdown, no code fences, no commentary.");
             prompt.AppendLine("Each JSON object must have exactly these fields: \"locale\" and \"text\".");
             prompt.AppendLine("The locale value must exactly match one requested target locale code.");
-            
+
 
             if (!string.IsNullOrWhiteSpace(_systemInstructions))
             {
@@ -416,30 +396,30 @@ namespace TimboJimboEditor.Localization.Translations
             }
 
             AppendContextBlocks(prompt);
-            AppendGlossaries(prompt, sourceLocale, targetLocales);
+            AppendGlossaries(prompt, sourceCode, targetCodes);
             prompt.AppendLine();
             prompt.AppendLine("Return one JSON object line per target locale now.");
 
             return prompt.ToString();
         }
 
-        private static string BuildUserPrompt(string sourceText, string sourceDescription, LocalizationLocale sourceLocale, IReadOnlyList<LocalizationLocale> targetLocales)
+        private static string BuildUserPrompt(string sourceText, string sourceDescription, LocaleCode sourceCode, IReadOnlyList<LocaleCode> targetCodes)
         {
             var prompt = new StringBuilder(1024);
 
-            prompt.Append("Source locale: ").AppendLine(GetLocaleCode(sourceLocale));
+            prompt.Append("Source locale: ").AppendLine(sourceCode.ToString());
 
-            if (targetLocales.Count > 1)
+            if (targetCodes.Count > 1)
             {
                 prompt.AppendLine("Target locales:");
-                for (int i = 0; i < targetLocales.Count; i++)
+                for (int i = 0; i < targetCodes.Count; i++)
                 {
-                    prompt.Append("- ").AppendLine(GetLocaleCode(targetLocales[i]));
+                    prompt.Append("- ").AppendLine(targetCodes[i].ToString());
                 }
             }
-            else if (targetLocales.Count == 1)
+            else if (targetCodes.Count == 1)
             {
-                prompt.Append("Target locale: ").AppendLine(GetLocaleCode(targetLocales[0]));
+                prompt.Append("Target locale: ").AppendLine(targetCodes[0].ToString());
             }
             else
             {
@@ -511,17 +491,17 @@ namespace TimboJimboEditor.Localization.Translations
             prompt.AppendLine();
         }
 
-        private void AppendGlossaries(StringBuilder prompt, LocalizationLocale sourceLocale, IReadOnlyList<LocalizationLocale> targetLocales)
+        private void AppendGlossaries(StringBuilder prompt, LocaleCode sourceCode, IReadOnlyList<LocaleCode> targetCodes)
         {
             if (_glossaries == null || _glossaries.Count == 0)
             {
                 return;
             }
 
-            var glossaryLocales = new List<LocalizationLocale>(targetLocales.Count + 1) { sourceLocale };
-            for (int i = 0; i < targetLocales.Count; i++)
+            var glossaryLocales = new List<LocaleCode>(targetCodes.Count + 1) { sourceCode };
+            for (int i = 0; i < targetCodes.Count; i++)
             {
-                glossaryLocales.Add(targetLocales[i]);
+                glossaryLocales.Add(targetCodes[i]);
             }
 
             var filteredEntries = new List<TranslationGlossary.FilteredEntry>();
@@ -567,15 +547,15 @@ namespace TimboJimboEditor.Localization.Translations
             for (int i = 0; i < entry.Values.Count; i++)
             {
                 LocaleValuePair<string> value = entry.Values[i];
-                if (value == null || value.Locale == null || string.IsNullOrWhiteSpace(value.Value)) continue;
+                if (value == null || value.Code.IsNone || string.IsNullOrWhiteSpace(value.Value)) continue;
 
-                prompt.Append("  - ").Append(GetLocaleCode(value.Locale)).Append(": ").AppendLine(value.Value);
+                prompt.Append("  - ").Append(value.Code.ToString()).Append(": ").AppendLine(value.Value);
             }
         }
 
         private void ReportProgress(
             TranslationProgressPhase phase,
-            LocalizationLocale locale,
+            LocaleCode code,
             string text,
             int completedCount,
             int totalCount,
@@ -584,7 +564,7 @@ namespace TimboJimboEditor.Localization.Translations
             bool log
         )
         {
-            ReportProgress(CreateProgress(phase, locale, text, completedCount, totalCount, message), progress, log);
+            ReportProgress(CreateProgress(phase, code, text, completedCount, totalCount, message), progress, log);
         }
 
         private void ReportProgress(TranslationProgress update, Action<TranslationProgress> progress, bool log)
@@ -601,7 +581,7 @@ namespace TimboJimboEditor.Localization.Translations
         private void LogProgress(TranslationProgressPhase phase, string message)
         {
             if(!LoggingEnabled) return;
-            
+
             string text = LogPrefix + message;
             if (phase == TranslationProgressPhase.Failed)
             {
@@ -619,18 +599,13 @@ namespace TimboJimboEditor.Localization.Translations
 
         private static TranslationProgress CreateProgress(
             TranslationProgressPhase phase,
-            LocalizationLocale locale,
+            LocaleCode code,
             string text,
             int completedCount,
             int totalCount,
             string message)
         {
-            return new TranslationProgress(phase, locale, locale != null ? GetLocaleCode(locale) : null, text, completedCount, totalCount, message);
-        }
-
-        private static string GetLocaleCode(LocalizationLocale locale)
-        {
-            return locale != null ? locale.DisplayCode : string.Empty;
+            return new TranslationProgress(phase, code, code.IsNone ? null : code.ToString(), text, completedCount, totalCount, message);
         }
 
 
@@ -689,7 +664,7 @@ namespace TimboJimboEditor.Localization.Translations
                 RawResponse = rawResponse;
             }
 
-            public void MarkSucceeded(IReadOnlyDictionary<LocalizationLocale, string> results)
+            public void MarkSucceeded(IReadOnlyDictionary<LocaleCode, string> results)
             {
                 Status = "Succeeded";
                 Error = null;
@@ -711,7 +686,7 @@ namespace TimboJimboEditor.Localization.Translations
                 CompletedAt = DateTime.Now;
             }
 
-            private static string BuildParsedResponseText(IReadOnlyDictionary<LocalizationLocale, string> results)
+            private static string BuildParsedResponseText(IReadOnlyDictionary<LocaleCode, string> results)
             {
                 if (results == null || results.Count == 0)
                 {
@@ -721,7 +696,7 @@ namespace TimboJimboEditor.Localization.Translations
                 var builder = new StringBuilder(results.Count * 64);
                 foreach (var pair in results)
                 {
-                    builder.Append(GetLocaleCode(pair.Key)).Append(": ").AppendLine(pair.Value);
+                    builder.Append(pair.Key.ToString()).Append(": ").AppendLine(pair.Value);
                 }
 
                 return builder.ToString();
@@ -745,22 +720,22 @@ namespace TimboJimboEditor.Localization.Translations
                 _apiKey = apiKey;
             }
 
-            public async Awaitable<IReadOnlyDictionary<LocalizationLocale, string>> Translate(
+            public async Awaitable<IReadOnlyDictionary<LocaleCode, string>> Translate(
                 string systemPrompt,
                 string userPrompt,
-                IReadOnlyList<LocalizationLocale> targetLocales,
+                IReadOnlyList<LocaleCode> targetCodes,
                 Action<TranslationProgress> progress,
                 TranslationDebugRecord debugRecord,
                 CancellationToken cancellationToken
             )
             {
-                var results = new Dictionary<LocalizationLocale, string>(targetLocales.Count);
-                var streamParser = new StreamingTranslationParser(BuildLocaleMap(targetLocales), results, progress, targetLocales.Count);
+                var results = new Dictionary<LocaleCode, string>(targetCodes.Count);
+                var streamParser = new StreamingTranslationParser(new HashSet<LocaleCode>(targetCodes), results, progress, targetCodes.Count);
                 string requestJson = BuildRequestJson(systemPrompt, userPrompt);
                 debugRecord?.SetRequestJson(requestJson);
 
                 using var request = CreateRequest(requestJson, streamParser.ReceiveText);
-                progress?.Invoke(CreateProgress(TranslationProgressPhase.UploadingRequest, null, null, 0, targetLocales.Count, "Sending OpenAI translation request."));
+                progress?.Invoke(CreateProgress(TranslationProgressPhase.UploadingRequest, LocaleCode.None, null, 0, targetCodes.Count, "Sending OpenAI translation request."));
 
                 UnityWebRequestAsyncOperation operation = request.SendWebRequest();
                 bool streamConnected = false;
@@ -776,7 +751,7 @@ namespace TimboJimboEditor.Localization.Translations
                     if (!streamConnected && request.responseCode > 0)
                     {
                         streamConnected = true;
-                        progress?.Invoke(CreateProgress(TranslationProgressPhase.StreamConnected, null, null, results.Count, targetLocales.Count, "Connected to OpenAI response stream."));
+                        progress?.Invoke(CreateProgress(TranslationProgressPhase.StreamConnected, LocaleCode.None, null, results.Count, targetCodes.Count, "Connected to OpenAI response stream."));
                     }
 
                     await Awaitable.NextFrameAsync();
@@ -793,7 +768,7 @@ namespace TimboJimboEditor.Localization.Translations
                 }
 
                 streamParser.FlushRemainingContent();
-                progress?.Invoke(CreateProgress(TranslationProgressPhase.Completed, null, null, results.Count, targetLocales.Count, $"OpenAI translation completed. Parsed {results.Count}/{targetLocales.Count} translations."));
+                progress?.Invoke(CreateProgress(TranslationProgressPhase.Completed, LocaleCode.None, null, results.Count, targetCodes.Count, $"OpenAI translation completed. Parsed {results.Count}/{targetCodes.Count} translations."));
 
                 return results;
             }
@@ -811,18 +786,6 @@ namespace TimboJimboEditor.Localization.Translations
                 request.SetRequestHeader("Content-Type", "application/json");
                 request.SetRequestHeader("Accept", "text/event-stream");
                 return request;
-            }
-
-            private static Dictionary<string, LocalizationLocale> BuildLocaleMap(IReadOnlyList<LocalizationLocale> targetLocales)
-            {
-                var localeByCode = new Dictionary<string, LocalizationLocale>(targetLocales.Count, StringComparer.OrdinalIgnoreCase);
-                for (int i = 0; i < targetLocales.Count; i++)
-                {
-                    LocalizationLocale locale = targetLocales[i];
-                    localeByCode[GetLocaleCode(locale)] = locale;
-                }
-
-                return localeByCode;
             }
 
             private string BuildRequestJson(string systemPrompt, string userPrompt)
@@ -950,24 +913,30 @@ namespace TimboJimboEditor.Localization.Translations
 
         private sealed class StreamingTranslationParser
         {
-            private readonly Dictionary<string, LocalizationLocale> _localeByCode;
-            private readonly Dictionary<LocalizationLocale, string> _results;
+            private readonly HashSet<LocaleCode> _targetCodes;
+            private readonly Dictionary<LocaleCode, string> _results;
             private readonly Action<TranslationProgress> _progress;
             private readonly int _totalCount;
             private readonly StringBuilder _sseBuffer = new();
             private readonly StringBuilder _jsonLineBuffer = new();
 
             public StreamingTranslationParser(
-                Dictionary<string, LocalizationLocale> localeByCode,
-                Dictionary<LocalizationLocale, string> results,
+                HashSet<LocaleCode> targetCodes,
+                Dictionary<LocaleCode, string> results,
                 Action<TranslationProgress> progress,
                 int totalCount
             )
             {
-                _localeByCode = localeByCode;
+                _targetCodes = targetCodes;
                 _results = results;
                 _progress = progress;
                 _totalCount = totalCount;
+            }
+
+            // The model echoes the codes it was given; a code it was not asked for is not a target.
+            private bool TryGetTargetCode(string rawLocaleCode, out LocaleCode code)
+            {
+                return LocaleCode.TryParse(rawLocaleCode, out code) && _targetCodes.Contains(code);
             }
 
             public void ReceiveText(string text)
@@ -1052,7 +1021,7 @@ namespace TimboJimboEditor.Localization.Translations
                     return;
                 }
 
-                _progress?.Invoke(CreateProgress(TranslationProgressPhase.StreamDelta, null, contentDelta, _results.Count, _totalCount, $"Received {contentDelta.Length} streamed translation characters."));
+                _progress?.Invoke(CreateProgress(TranslationProgressPhase.StreamDelta, LocaleCode.None, contentDelta, _results.Count, _totalCount, $"Received {contentDelta.Length} streamed translation characters."));
                 AppendContentDelta(contentDelta);
             }
 
@@ -1136,13 +1105,13 @@ namespace TimboJimboEditor.Localization.Translations
 
                 string raw = buffer.Substring(textStart, textEnd - textStart);
                 string localeCode = localeMatch.Groups[1].Value;
-                if (!_localeByCode.TryGetValue(localeCode, out LocalizationLocale locale))
+                if (!TryGetTargetCode(localeCode, out LocaleCode code))
                 {
                     return;
                 }
 
                 // Skip if locale is already finalized.
-                if (_results.ContainsKey(locale))
+                if (_results.ContainsKey(code))
                 {
                     return;
                 }
@@ -1158,7 +1127,7 @@ namespace TimboJimboEditor.Localization.Translations
 
                 _progress.Invoke(new TranslationProgress(
                     TranslationProgressPhase.PartialLocaleText,
-                    locale,
+                    code,
                     localeCode,
                     text,
                     _results.Count,
@@ -1249,26 +1218,26 @@ namespace TimboJimboEditor.Localization.Translations
                 }
                 catch (Exception ex)
                 {
-                    _progress?.Invoke(CreateProgress(TranslationProgressPhase.Warning, null, line, _results.Count, _totalCount, $"Could not parse streamed translation line: {ex.Message}"));
+                    _progress?.Invoke(CreateProgress(TranslationProgressPhase.Warning, LocaleCode.None, line, _results.Count, _totalCount, $"Could not parse streamed translation line: {ex.Message}"));
                     return;
                 }
 
                 if (translationLine == null || string.IsNullOrWhiteSpace(translationLine.locale))
                 {
-                    _progress?.Invoke(CreateProgress(TranslationProgressPhase.Warning, null, line, _results.Count, _totalCount, "OpenAI returned a translation line without a locale."));
+                    _progress?.Invoke(CreateProgress(TranslationProgressPhase.Warning, LocaleCode.None, line, _results.Count, _totalCount, "OpenAI returned a translation line without a locale."));
                     return;
                 }
 
-                if (!_localeByCode.TryGetValue(translationLine.locale, out LocalizationLocale locale))
+                if (!TryGetTargetCode(translationLine.locale, out LocaleCode code))
                 {
-                    _progress?.Invoke(new TranslationProgress(TranslationProgressPhase.Warning, null, translationLine.locale, translationLine.text, _results.Count, _totalCount, $"OpenAI returned an unexpected locale '{translationLine.locale}'."));
+                    _progress?.Invoke(new TranslationProgress(TranslationProgressPhase.Warning, LocaleCode.None, translationLine.locale, translationLine.text, _results.Count, _totalCount, $"OpenAI returned an unexpected locale '{translationLine.locale}'."));
                     return;
                 }
 
-                _results[locale] = translationLine.text ?? string.Empty;
+                _results[code] = translationLine.text ?? string.Empty;
                 _lastPartialLocale = null;
                 _lastPartialText = null;
-                _progress?.Invoke(CreateProgress(TranslationProgressPhase.LocaleCompleted, locale, translationLine.text, _results.Count, _totalCount, $"Parsed translation for {GetLocaleCode(locale)} ({_results.Count}/{_totalCount})."));
+                _progress?.Invoke(CreateProgress(TranslationProgressPhase.LocaleCompleted, code, translationLine.text, _results.Count, _totalCount, $"Parsed translation for {code} ({_results.Count}/{_totalCount})."));
             }
 
             private static string TryReadContentDelta(string data)

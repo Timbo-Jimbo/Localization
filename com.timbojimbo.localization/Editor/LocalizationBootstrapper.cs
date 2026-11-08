@@ -327,9 +327,7 @@ namespace TimboJimboEditor.Localization
                     continue;
                 }
 
-                bool isLanguageMatch = string.Equals(locale.LanguageCode, languageCode, StringComparison.OrdinalIgnoreCase);
-                bool isCountryMatch = string.Equals(locale.CountryCode ?? string.Empty, countryCode ?? string.Empty, StringComparison.OrdinalIgnoreCase);
-                if (isLanguageMatch && isCountryMatch)
+                if (locale.Code == new LocaleCode(languageCode, countryCode))
                 {
                     return locale;
                 }
@@ -372,28 +370,10 @@ namespace TimboJimboEditor.Localization
 
             helloWorld.Values ??= new List<LocaleValuePair<string>>();
 
-            bool updated = false;
-            for (int i = 0; i < helloWorld.Values.Count; i++)
-            {
-                LocaleValuePair<string> pair = helloWorld.Values[i];
-                if (pair == null || pair.Locale != englishLocale)
-                {
-                    continue;
-                }
-
+            if (helloWorld.TryFindValue(englishLocale.Code, out LocaleValuePair<string> pair))
                 pair.Value = HelloWorldAssetValue;
-                updated = true;
-                break;
-            }
-
-            if (!updated)
-            {
-                helloWorld.Values.Add(new LocaleValuePair<string>
-                {
-                    Locale = englishLocale,
-                    Value = HelloWorldAssetValue,
-                });
-            }
+            else
+                helloWorld.Values.Add(new LocaleValuePair<string>(englishLocale.Code, HelloWorldAssetValue));
 
             EditorUtility.SetDirty(helloWorld);
         }

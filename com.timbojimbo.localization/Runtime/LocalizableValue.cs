@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using TimboJimbo.Localization.Debugging;
 using TimboJimbo.Localization.Utility;
 using UnityEngine;
@@ -14,26 +16,32 @@ namespace TimboJimbo.Localization
         [SerializeField]
         protected UsageContext UsageContext;
 
-        public TValue Resolve(LocalizationLocale locale)
+        [NonSerialized] private HashSet<LocaleCode> _warnedCodes;
+
+        public TValue Resolve(LocaleCode code)
         {
             if (IsLocalized)
-                return Localized.Resolve(locale);
+                return Localized.Resolve(code);
 
             if (Unlocalized == null)
             {
-                LogLocalizationMissingWarn(locale);
+                WarnMissing(code);
                 return NonNullFallbackValue.ForType<TValue>();
             }
 
             return Unlocalized;
         }
 
-        protected void LogLocalizationMissingWarn(LocalizationLocale locale)
+        /// <summary>Warns that nothing resolved for <paramref name="code"/>: once per code for this value, and only in a playing game.</summary>
+        protected void WarnMissing(LocaleCode code)
         {
             //todo: replace with EditorAwareUtil.IsLiveInstance -> using DebugContextInfo.Context as target obj
             if (!Application.isPlaying) return;
 
-            UsageContext.LogWarning($"No localization found for locale {locale.DisplayCode}. Returning unlocalized value.");
+            _warnedCodes ??= new HashSet<LocaleCode>();
+            if (!_warnedCodes.Add(code)) return;
+
+            UsageContext.LogWarning($"No localized asset and no unlocalized value for locale \"{code}\". Returning the default value. (Warned once per locale.)");
         }
     }
 }

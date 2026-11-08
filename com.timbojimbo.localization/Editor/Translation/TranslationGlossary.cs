@@ -19,27 +19,26 @@ namespace TimboJimboEditor.Localization.Translations
         /// The default locale (typically English) is always included so LLMs always have
         /// a canonical source term to translate from.
         /// </summary>
-        /// <param name="locales">Locales to include. Null or empty returns only the default locale.</param>
+        /// <param name="codes">Locale codes to include. Null or empty returns only the default locale.</param>
         /// <param name="results">List to populate. Cleared before use.</param>
-        public void GetFiltered(IEnumerable<LocalizationLocale> locales, List<FilteredEntry> results)
+        public void GetFiltered(IEnumerable<LocaleCode> codes, List<FilteredEntry> results)
         {
             if (results == null) throw new ArgumentNullException(nameof(results));
             results.Clear();
 
-            var defaultLocale = LocalizationSettings.DefaultLocale;
-
-            var includedLocales = HashSetPool<LocalizationLocale>.Get();
+            var includedCodes = HashSetPool<LocaleCode>.Get();
             try
             {
-                if (defaultLocale != null)
-                    includedLocales.Add(defaultLocale);
+                var defaultCode = LocalizationSettings.DefaultCode;
+                if (!defaultCode.IsNone)
+                    includedCodes.Add(defaultCode);
 
-                if (locales != null)
+                if (codes != null)
                 {
-                    foreach (var locale in locales)
+                    foreach (var code in codes)
                     {
-                        if (locale != null)
-                            includedLocales.Add(locale);
+                        if (!code.IsNone)
+                            includedCodes.Add(code);
                     }
                 }
 
@@ -53,8 +52,8 @@ namespace TimboJimboEditor.Localization.Translations
                     for (int j = 0; j < termValues.Count; j++)
                     {
                         var pair = termValues[j];
-                        if (pair == null || pair.Locale == null) continue;
-                        if (includedLocales.Contains(pair.Locale))
+                        if (pair == null || pair.Code.IsNone) continue;
+                        if (includedCodes.Contains(pair.Code))
                             localizedValues.Add(pair);
                     }
 
@@ -63,7 +62,7 @@ namespace TimboJimboEditor.Localization.Translations
             }
             finally
             {
-                HashSetPool<LocalizationLocale>.Release(includedLocales);
+                HashSetPool<LocaleCode>.Release(includedCodes);
             }
         }
 

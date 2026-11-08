@@ -73,45 +73,45 @@ namespace TimboJimboEditor.Localization
                 {
                     buttons.Add(new LocalizationEditorGUI.ButtonGroupEntry(
                         label: missingLabel,
-                        onClick: () => OnTranslateButtonClicked(TranslationJobScope.Missing, null)
+                        onClick: () => OnTranslateButtonClicked(TranslationJobScope.Missing)
                     ));
                 }
 
                 buttons.Add(new LocalizationEditorGUI.ButtonGroupEntry(
                     label: allLabel,
-                    onClick: () => OnTranslateButtonClicked(TranslationJobScope.All, null)
+                    onClick: () => OnTranslateButtonClicked(TranslationJobScope.All)
                 ));
 
                 LocalizationEditorGUI.ButtonGroup(
                     buttons: buttons,
-                    populateContextMenu: (menu) => PopulateMenuTranslatorPicker(menu, TranslationJobScope.All, null)
+                    populateContextMenu: (menu) => PopulateMenuTranslatorPicker(menu, TranslationJobScope.All)
                 );
             }
         }
 
-        private void OnTranslateButtonClicked(TranslationJobScope scope, LocalizationLocale singleTargetLocale)
+        private void OnTranslateButtonClicked(TranslationJobScope scope)
         {
             List<AiTranslator> translators = TranslationJobs.FindAiTranslators();
             if (translators.Count <= 1)
             {
                 // Single (or zero) translator — start directly.
-                StartTranslationForSelectedTargets(scope, singleTargetLocale);
+                StartTranslationForSelectedTargets(scope);
                 return;
             }
 
             AiTranslator defaultTranslator = AiTranslator.GetDefaultTranslator();
             if (defaultTranslator != null)
             {
-                StartTranslationForSelectedTargets(defaultTranslator, scope, singleTargetLocale);
+                StartTranslationForSelectedTargets(defaultTranslator, scope);
                 return;
             }
             
             var menu = new GenericMenu();
-            PopulateMenuTranslatorPicker(menu, scope, singleTargetLocale);
+            PopulateMenuTranslatorPicker(menu, scope);
             menu.ShowAsContext();
         }
 
-        private void PopulateMenuTranslatorPicker(GenericMenu menu, TranslationJobScope scope, LocalizationLocale singleTargetLocale)
+        private void PopulateMenuTranslatorPicker(GenericMenu menu, TranslationJobScope scope)
         {
             List<AiTranslator> translators = TranslationJobs.FindAiTranslators();
 
@@ -121,7 +121,7 @@ namespace TimboJimboEditor.Localization
                 {
                     AiTranslator translator = TranslationJobs.CreateAiTranslatorAsset();
                     if (translator != null)
-                        StartTranslationForSelectedTargets(translator, scope, singleTargetLocale);
+                        StartTranslationForSelectedTargets(translator, scope);
                 });
             }
             else if(TranslationJobs.CanStartForSelection(targets, out var disabledReason))
@@ -130,7 +130,7 @@ namespace TimboJimboEditor.Localization
                 {
                     AiTranslator translator = translators[i];
                     string label = "Translate With/" + GetTranslatorMenuLabel(translators, i);
-                    menu.AddItem(new GUIContent(label), false, () => StartTranslationForSelectedTargets(translator, scope, singleTargetLocale));
+                    menu.AddItem(new GUIContent(label), false, () => StartTranslationForSelectedTargets(translator, scope));
                 }
             }
             else
@@ -141,7 +141,7 @@ namespace TimboJimboEditor.Localization
 
         protected override void DrawRowHeaderMenuArea(LocalizationLocale locale, SerializedProperty valueProperty)
         {
-            if(_jobState.TryGetLocaleState(locale, out TranslationJobs.LocalePresentationState localeState) && localeState.IsTranslating)
+            if(_jobState.TryGetLocaleState(locale.Code, out TranslationJobs.LocalePresentationState localeState) && localeState.IsTranslating)
             {
                 var spinnerRect = GUILayoutUtility.GetRect(EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
                 // pad it out a bit
@@ -160,19 +160,20 @@ namespace TimboJimboEditor.Localization
         protected override void BuildRowHeaderMenu(GenericMenu menu, LocalizationLocale locale, SerializedProperty valueProperty)
         {
             string translateLabel = IsEditingMultipleObjects ? "Translate For Selection" : "Translate";
-            AddTranslationMenuItem(menu, translateLabel, TranslationJobScope.SingleLocale(locale));
+            AddTranslationMenuItem(menu, translateLabel, TranslationJobScope.SingleLocale(locale.Code));
             menu.AddSeparator(string.Empty);
             base.BuildRowHeaderMenu(menu, locale, valueProperty);
         }
 
         public override void OnLocaleValueGUI(LocalizationLocale locale, SerializedProperty valueProperty)
         {
-            bool hasLocaleState = _jobState.TryGetLocaleState(locale, out TranslationJobs.LocalePresentationState localeState);
+            var code = LocaleCode.Of(locale);
+            bool hasLocaleState = _jobState.TryGetLocaleState(code, out TranslationJobs.LocalePresentationState localeState);
             bool isTranslating = hasLocaleState && localeState.IsTranslating;
 
             using(LocalizationEditorGUI.PulseScope(pulse: isTranslating))
             {
-                float height = EditorGUIUtility.singleLineHeight * (locale == LocalizationSettings.DefaultLocale ? 8f : 4f) + 4f;
+                float height = EditorGUIUtility.singleLineHeight * (IsDefaultCode(code) ? 8f : 4f) + 4f;
 
                 using (new EditorGUI.DisabledScope(isTranslating))
                 {
@@ -290,20 +291,20 @@ namespace TimboJimboEditor.Localization
         }
 
 
-        private void StartTranslationForSelectedTargets(TranslationJobScope scope, LocalizationLocale singleTargetLocale = null)
+        private void StartTranslationForSelectedTargets(TranslationJobScope scope)
         {
             List<AiTranslator> translators = TranslationJobs.FindAiTranslators();
             if (translators.Count == 0)
             {
                 AiTranslator translator = TranslationJobs.CreateAiTranslatorAsset();
                 if (translator != null)
-                    StartTranslationForSelectedTargets(translator, scope, singleTargetLocale);
+                    StartTranslationForSelectedTargets(translator, scope);
                 return;
             }
 
             if (translators.Count == 1)
             {
-                StartTranslationForSelectedTargets(translators[0], scope, singleTargetLocale);
+                StartTranslationForSelectedTargets(translators[0], scope);
                 return;
             }
 
@@ -313,15 +314,15 @@ namespace TimboJimboEditor.Localization
                 AiTranslator translator = translators[i];
                 string path = AssetDatabase.GetAssetPath(translator);
                 string label = string.IsNullOrEmpty(path) ? translator.name : path;
-                menu.AddItem(new GUIContent(label), false, () => StartTranslationForSelectedTargets(translator, scope, singleTargetLocale));
+                menu.AddItem(new GUIContent(label), false, () => StartTranslationForSelectedTargets(translator, scope));
             }
 
             menu.ShowAsContext();
         }
 
-        private void StartTranslationForSelectedTargets(AiTranslator translator, TranslationJobScope scope, LocalizationLocale singleTargetLocale = null)
+        private void StartTranslationForSelectedTargets(AiTranslator translator, TranslationJobScope scope)
         {
-            if (!TranslationJobs.TryStartJob(translator, serializedObject.targetObjects, scope, singleTargetLocale, out string failureMessage))
+            if (!TranslationJobs.TryStartJob(translator, serializedObject.targetObjects, scope, out string failureMessage))
             {
                 EditorUtility.DisplayDialog("Translate", failureMessage, "OK");
                 return;
@@ -384,8 +385,8 @@ namespace TimboJimboEditor.Localization
             for (int i = 0; i < LocalizationSettings.Locales.Count; i++)
             {
                 LocalizationLocale locale = LocalizationSettings.Locales[i];
-                if (locale != null && _jobState.TryGetLocaleState(locale, out TranslationJobs.LocalePresentationState localeState) && localeState.IsTranslating)
-                    SetLocaleRowExpanded(locale, true);
+                if (locale != null && _jobState.TryGetLocaleState(locale.Code, out TranslationJobs.LocalePresentationState localeState) && localeState.IsTranslating)
+                    SetLocaleRowExpanded(locale.Code, true);
             }
         }
     }
